@@ -47,6 +47,22 @@ bash scripts/45_run_prompting.sh                 # serves each model, runs direc
 python scripts/65_analyze_prompting.py           # -> results/prompting_summary.{md,csv}
 ```
 
+## Custom annotated document set
+
+A held-out set of 25 degraded real-world scans (invoices, receipts, cheques,
+forms) was hand-annotated — up to 3 Q/A pairs per document plus free-text
+**failure-mode** tags (faint print, handwriting, skewed/upside-down, dense fine
+print, stylized logos) — using a self-contained browser annotator. The export
+(`annotations.json`) is converted into the same TSV/ANLS format and scored under
+both prompting regimes, with accuracy broken down **by failure mode** to show
+which degradation conditions each model chokes on.
+
+```bash
+python scripts/95_build_custom_tsv.py    # annotations.json -> LMUData/CustomDocVQA.tsv (+ index map)
+bash   scripts/47_run_custom.sh          # serves each model, runs direct + cot on the custom set
+python scripts/66_analyze_custom.py      # -> results/custom_summary.{md,csv} + failure-mode breakdown
+```
+
 ## Repository layout
 
 ```
@@ -56,11 +72,13 @@ scripts/       pipeline (numbered by run order)
   20           5-sample smoke test
   30 / 35      full eval — HF path / vLLM-served path (headline numbers)
   40 / 45      CoT-vs-direct prompting driver + orchestrator
+  47           run direct + cot on the custom annotated set
   50 / 55      confidence (ECE) + latency pass
-  60 / 65      analysis — main summary / prompting comparison
+  60 / 65 / 66 analysis — main summary / prompting comparison / custom-set + failure modes
   70 / 71 / 72 LoRA PoC (prep / train / eval) — prepared, execution descoped
   80           Donut specialist baseline (custom HF driver)
   90           custom-document annotation-page builder
+  95           annotations.json -> CustomDocVQA TSV converter
 results/       summary.{csv,md}, gap_analysis.md, ece/ (per-sample logprob JSONLs)
 report/        report.md + Technical_Report.pdf
 TASK.md        problem statement + methodology
