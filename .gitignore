@@ -1,0 +1,18 @@
+# Datasets & heavy artifacts (not source)
+LMUData/
+eval_work/
+lora/images/
+lora/ckpt/
+lora/*.jsonl
+custom_docs/
+annotator/
+logs/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+*.swp
