@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""LoRA fine-tune Qwen3.5-0.8B on InfoVQA-style samples (T4-sized config).
+"""LoRA fine-tune Qwen3.5-0.8B on DocVQA+InfoVQA-style samples (T4-sized config).
 
 - LoRA r=16 on decoder attention+MLP projections; vision encoder frozen.
 - fp16 AMP, batch 1 + grad-accum 8, grad checkpointing, max_pixels capped at
   768*28*28 for training memory (eval keeps its own 1280*28*28 cap).
 - Prompt matches eval exactly: question + "Answer the question using a single
   word or phrase."; loss only on answer tokens.
+- 1 epoch over 1500 mixed-domain rows (first PoC used 800 InfoVQA-only rows
+  for 1 epoch and did not move the needle; this run mixes in DocVQA too).
+- Checkpoints every 50 steps so a disconnect doesn't lose all progress.
 - Saves adapter + merged fp16 model (for vLLM serving) to Drive.
 """
 import json
@@ -53,11 +56,16 @@ class InfoVQATrain(Dataset):
             {"type": "image"},
             {"type": "text", "text": r["question"] + SUFFIX}]}]
         prompt = processor.apply_chat_template(msgs, add_generation_prompt=True, tokenize=False)
-        full = prompt + r["answer"] + processor.tokenizer.eos_token
+        answer_suffix = r["answer"] + processor.tokenizer.eos_token
+        full = prompt + answer_suffix
         enc = processor(text=full, images=[img], return_tensors="pt")
         ids = enc["input_ids"][0]
-        # loss only on answer tokens: mask everything up to the prompt length
-        plen = len(processor(text=prompt, images=[img])["input_ids"][0])
+        # loss only on answer tokens: mask everything up to the prompt length.
+        # answer_suffix has no <image> placeholder, so its token count can be
+        # measured with the plain text tokenizer instead of reprocessing the
+        # image a second time (was the main CPU bottleneck on a 2-vCPU box).
+        alen = len(processor.tokenizer(answer_suffix, add_special_tokens=False)["input_ids"])
+        plen = len(ids) - alen
         labels = ids.clone()
         labels[:plen] = -100
         # squeeze the batch dim only on per-token tensors; pixel_values /
@@ -86,7 +94,9 @@ args = TrainingArguments(
     fp16=True,
     gradient_checkpointing=True,
     logging_steps=10,
-    save_strategy="no",
+    save_strategy="steps",
+    save_steps=50,
+    save_total_limit=3,
     report_to=[],
     remove_unused_columns=False,
     dataloader_num_workers=2,
@@ -96,7 +106,7 @@ args = TrainingArguments(
 trainer = Trainer(model=model, args=args,
                   train_dataset=InfoVQATrain(LORA_DIR / "train.jsonl"),
                   data_collator=collate)
-trainer.train()
+trainer.train(resume_from_checkpoint=True if list((LORA_DIR / "ckpt").glob("checkpoint-*")) else None)
 
 model.save_pretrained(LORA_DIR / "adapter")
 print("adapter saved")
