@@ -17,12 +17,12 @@ Four models were evaluated on document understanding under an identical, reprodu
 
 ## 2. Model Choice
 
-| Model | Params | Vision Encoder | Decoder | Why included |
-|---|---|---|---|---|
-| Qwen3.5-0.8B | 0.8B | Native Qwen encoder (high-res tiling) | Qwen3.5 (hybrid linear/full attention) | Newest sub-1B entrant; document understanding is an explicit design goal of the release |
-| InternVL3-1B | ~1B | InternViT (dynamic tiling) | Qwen2.5-0.5B | Tests whether encoder-side resolution handling dominates document performance |
-| SmolVLM-500M-Instruct | 0.5B | SigLIP | SmolLM2-360M | Purpose-built edge-native design; the "designed for constraint" reference point |
-| Donut (docvqa-ft) | ~0.2B | Swin (OCR-free) | BART | Task-specific specialist baseline, fine-tuned on the DocVQA training split (in-domain there) |
+| Model                                                                                          | Params | Vision Encoder                                      | Decoder      | Why do we evaluate this?                                                                                                                   |
+| ---------------------------------------------------------------------------------------------- | -----: | --------------------------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| [Qwen3.5-VL-0.8B](https://github.com/QwenLM/Qwen3-VL)                                          |   0.8B | Native Qwen vision encoder (high-resolution tiling) | Qwen3.5      | Represents the latest generation of sub-1B VLMs, with document understanding being one of its primary target applications.                |
+| [InternVL3-1B](https://github.com/OpenGVLab/InternVL)                                          |    ~1B | InternViT (dynamic tiling)                          | Qwen2.5-0.5B | Included to evaluate the effect of a strong, high-resolution vision encoder on document understanding under a similar parameter budget.   |
+| [SmolVLM-500M-Instruct](https://huggingface.co/HuggingFaceTB/SmolVLM-500M-Instruct)            |   0.5B | SigLIP                                              | SmolLM2-360M | A lightweight VLM designed for resource-constrained environments, providing a representative small-model baseline.                        |
+| [Donut (DocVQA fine-tuned)](https://huggingface.co/naver-clova-ix/donut-base-finetuned-docvqa) |  ~0.2B | Swin Transformer                                    | BART         | An OCR-free document understanding model specialized for DocVQA. It serves as a task-specific baseline rather than a general-purpose VLM. |
 
 The three VLMs share no encoder or decoder family, so results cannot be attributed to a single shared component.We evaluate the newest general-purpose design (Qwen3.5) versus resolution-optimized encoder (InternVL3) versus edge-native design (SmolVLM). Donut adds a fourth metric: does a 2022-era task-specific document architecture still beat modern generalists of similar size on its home task?
 
