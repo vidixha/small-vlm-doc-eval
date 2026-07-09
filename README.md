@@ -10,8 +10,8 @@ Full methodology and results: [report.md](report.md)
 
 | Dataset | Justification |
 |---|---|
-| DocVQA (val, 300-sample subset) | Well-known document VQA benchmark (forms, invoices, letters); comparable with published results |
-| InfoVQA (val, 300-sample subset) | Infographics needing joint text + layout + graphics reasoning, beyond plain extraction |
+| DocVQA (val) | Well-known document VQA benchmark (forms, invoices, letters); comparable with published results |
+| InfoVQA (val) | Infographics needing joint text + layout + graphics reasoning, beyond plain extraction |
 | [Custom set](custom_docs/) (25 docs, 70 QA) | Custom annotated documents with failure modes (skew, handwriting, fine print, vertical text etc.); tests real-world robustness the public benchmarks skip |
 
 ## Models
