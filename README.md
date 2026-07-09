@@ -47,4 +47,11 @@ python scripts/inference/donut_custom.py  # Donut on the custom set (direct only
 python scripts/eval/analyze.py            # main summary
 python scripts/eval/analyze_prompting.py  # prompting comparison
 python scripts/eval/analyze_custom.py     # custom-set summary + failure-mode breakdown
+
+# 5. LoRA PoC (rank-16, decoder-only, vision frozen; see report.md Section 8)
+bash scripts/setup/setup_vllm_env.sh                    # if not already set up
+python scripts/lora/prep.py                             # builds lora/train.jsonl from DocVQA+InfoVQA VAL, disjoint from eval subsets
+python scripts/lora/train.py                            # trains adapter, saves merged fp16 model to lora/merged
+bash scripts/lora/eval.sh                                # serves lora/merged, evals DocVQA/InfoVQA SUB300
+bash scripts/lora/eval_custom.sh                         # serves lora/merged, evals the custom set (direct + cot)
 ```

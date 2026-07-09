@@ -136,11 +136,20 @@ The custom dataset provided insights that are not visible from standard benchmar
 
 The evaluation highlights two main areas where the best-performing model, **Qwen3.5-0.8B**, can be improved. First, its performance drops considerably on infographic-style documents that require reasoning over layouts, charts, and graphics. Second, it is less robust to real-world document degradations such as rotation, skew, fine print, and dense layouts.
 
-To address these limitations, LoRA fine-tuning can be applied to Qwen3.5-0.8B. The approach uses parameter-efficient fine-tuning with the vision encoder kept frozen and trains only a small fraction of the model parameters on a subset of the InfoVQA training data. The goal is to improve layout reasoning while maintaining performance on standard document question answering.
+To address these limitations, LoRA fine-tuning was applied to Qwen3.5-0.8B: rank-16 adapters on the decoder's attention and MLP projections (q/k/v/o, gate/up/down), vision encoder frozen, 0.74% of parameters trainable. Training data was drawn from the DocVQA and InfoVQA validation splits, strictly disjoint from the 300-sample subsets used for evaluation, so no eval row is ever trained on.
+
+A first attempt trained on 800 InfoVQA-only rows for 1 epoch and did not move either benchmark. Scaling to a larger, mixed-domain set, 1500 rows drawn from both DocVQA and InfoVQA, for 1 epoch, improved both:
+
+| Dataset | Baseline ANLS | LoRA ANLS | Delta |
+|---|---|---|---|
+| InfoVQA_VAL_SUB300 | 54.1 | **61.27** | **+7.17** |
+| DocVQA_VAL_SUB300 | 86.9 | **89.70** | **+2.80** |
+
+Training loss dropped cleanly from about 0.94 to 0.79 over the epoch with no divergence. This is a proof of concept, not a leaderboard claim: training data comes from the public VAL split (the official train split requires separate registration), and the run is a single seed. It shows that a small amount of parameter-efficient fine-tuning on in-domain data closes part of the infographic-reasoning gap without regressing DocVQA.
 
 ## 9. Code to reproduce results
 
-All code, data manifests, and results are in the repository, with scripts grouped by pipeline stage: `scripts/setup/` (environments, model registration, subset and custom-TSV builds), `scripts/inference/` (main eval, prompting, ECE/latency, Donut drivers), and `scripts/eval/` (analysis and summaries). The custom-set pipeline is fully re-runnable: `setup/build_custom_tsv.py`, `inference/run_custom.sh`, `inference/donut_custom.py`, `eval/analyze_custom.py`.
+All code, data manifests, and results are in the repository, with scripts grouped by pipeline stage: `scripts/setup/` (environments, model registration, subset and custom-TSV builds), `scripts/inference/` (main eval, prompting, ECE/latency, Donut drivers), `scripts/eval/` (analysis and summaries), and `scripts/lora/` (LoRA training data prep, training, evaluation; see the README for how to run the LoRA PoC). The custom-set pipeline is fully re-runnable: `setup/build_custom_tsv.py`, `inference/run_custom.sh`, `inference/donut_custom.py`, `eval/analyze_custom.py`.
 
 ### Results directory
 
@@ -155,6 +164,9 @@ results/
     CustomDocVQA_direct.jsonl        custom-set predictions, direct prompting
     CustomDocVQA_cot.jsonl           custom-set predictions, chain-of-thought (VLMs only;
                                      Donut has no chat capability)
+  Qwen3.5-0.8B-LoRA/                 LoRA PoC results (Section 8):
+    DocVQA_VAL_SUB300_acc.csv       ANLS on the DocVQA eval subset, LoRA-merged model
+    InfoVQA_VAL_SUB300_acc.csv      ANLS on the InfoVQA eval subset, LoRA-merged model
 ```
 
 The analysis scripts regenerate aggregate tables at runtime (`summary`, `custom_summary`, the failure-mode breakdown, and the row-to-document index map); those files are not committed, since every number they contain is reproduced in this report (Sections 6 and 7, and the Appendix in full).
@@ -162,7 +174,7 @@ The analysis scripts regenerate aggregate tables at runtime (`summary`, `custom_
 
 ## 10. Recommendation
 
-For on-device document pipelines in this compute class, **Qwen3.5-0.8B remains the best single-model foundation**, but with two qualifications the public benchmarks alone would have missed. First, add orientation and deskew preprocessing before inference; this is the highest-leverage fix available, recovering failure modes where every model currently scores zero. Second, do not reuse DocVQA-calibrated confidence thresholds on captured documents; calibration must be set per input condition, and infographic-style inputs should be routed to human review or a larger model regardless of reported confidence. Use direct prompting, not chain-of-thought, for extraction. LoRA adaptation remains the lowest-cost path to closing the layout-reasoning gap, and the custom set doubles as its robustness regression suite.
+For on-device document pipelines in this compute class, **Qwen3.5-0.8B remains the best single-model foundation**, but with two qualifications the public benchmarks alone would have missed. First, add orientation and deskew preprocessing before inference; this is the highest-leverage fix available, recovering failure modes where every model currently scores zero. Second, do not reuse DocVQA-calibrated confidence thresholds on captured documents; calibration must be set per input condition, and infographic-style inputs should be routed to human review or a larger model regardless of reported confidence. Use direct prompting, not chain-of-thought, for extraction. LoRA adaptation is a low-cost path to closing the layout-reasoning gap: a 1500-row, 1-epoch fine-tune already lifted InfoVQA ANLS by 7.2 points with no DocVQA regression (Section 8), and the custom set doubles as its robustness regression suite.
 
 ## 11. Appendix: Full Result Tables
 
