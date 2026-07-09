@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Aggregate all results: ANLS (from VLMEvalKit acc.csv), ECE + latency (from
-the 50_ece_latency.py JSONLs). Emits vlm_eval/results/summary.md + summary.csv.
+the inference/ece_latency.py JSONLs). Emits vlm_eval/results/summary.md + summary.csv.
 
 ECE: confidence = geometric-mean token probability (conf_geo); correctness =
 per-sample ANLS >= 0.5 (standard DocVQA threshold); 10 equal-width bins.
@@ -84,7 +84,7 @@ df = pd.DataFrame(rows)
 OUT.mkdir(parents=True, exist_ok=True)
 df.to_csv(OUT / "summary.csv", index=False)
 
-md = ["# Sub-1B VLM Document Understanding — Results Summary\n",
+md = ["# Sub-1B VLM Document Understanding: Results Summary\n",
       "300-sample fixed-seed (42) subsets, greedy decoding, vLLM-served on T4.\n",
       df.to_markdown(index=False)]
 (OUT / "summary.md").write_text("\n".join(md))

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Aggregate the CoT-vs-direct prompting eval (40_prompt_eval.py JSONLs) into a
-side-by-side comparison. Same ANLS path as 60_analyze.py (process_line + the
+"""Aggregate the CoT-vs-direct prompting eval (inference/prompt_eval.py JSONLs) into a
+side-by-side comparison. Same ANLS path as eval/analyze.py (process_line + the
 DocVQA 0.5 threshold via hit_calculate), same 10-bin ECE.
 
 Emits vlm_eval/results/prompting_summary.{csv,md}:
@@ -73,14 +73,14 @@ OUT.mkdir(parents=True, exist_ok=True)
 df.to_csv(OUT / "prompting_summary.csv", index=False)
 
 # ANLS pivot: direct vs cot + delta
-lines = ["# CoT vs Direct Prompting — Sub-1B VLMs\n",
+lines = ["# CoT vs Direct Prompting: Sub-1B VLMs\n",
          "300-sample fixed-seed (42) subsets, greedy decoding, vLLM-served on T4. "
          "`direct` = the standard single-phrase prompt (reproduces the headline eval); "
          "`cot` = step-by-step reasoning with the final answer parsed back out for ANLS.\n"]
 if not df.empty:
     piv = df.pivot_table(index=["model", "dataset"], columns="mode", values="anls")
     if {"direct", "cot"}.issubset(piv.columns):
-        piv["Δ (cot−direct)"] = (piv["cot"] - piv["direct"]).round(2)
+        piv["Δ (cot-direct)"] = (piv["cot"] - piv["direct"]).round(2)
     lines.append("## ANLS\n")
     lines.append(piv.reset_index().to_markdown(index=False))
     lines.append("\n## Full metrics (per model × dataset × mode)\n")

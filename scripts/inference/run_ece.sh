@@ -1,9 +1,9 @@
 #!/bin/bash
-# 55_ece_all.sh — serve each model (warm caches) and run the ECE+latency pass
-# (50_ece_latency.py) over both 300-sample subsets. Same serve flags as the
-# main eval for comparability. Resumable: 50_ece_latency.py appends JSONL and
+# inference/run_ece.sh: serve each model (warm caches) and run the ECE+latency pass
+# (inference/ece_latency.py) over both 300-sample subsets. Same serve flags as the
+# main eval for comparability. Resumable: inference/ece_latency.py appends JSONL and
 # skips already-done indices.
-#   bash /content/drive/MyDrive/vlm_eval/scripts/55_ece_all.sh [Model ...]
+#   bash /content/drive/MyDrive/vlm_eval/scripts/inference/run_ece.sh [Model ...]
 set -uo pipefail
 source /content/miniconda3/etc/profile.d/conda.sh
 unset PYTHONPATH
@@ -49,7 +49,7 @@ for NAME in "${MODELS[@]}"; do
   fi
 
   conda activate vlmeval
-  python "$SCRIPTS/50_ece_latency.py" --model "$NAME" \
+  python "$SCRIPTS/inference/ece_latency.py" --model "$NAME" \
     --data DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300 \
     --concurrency 4 --latency-samples 30
   RC=$?

@@ -5,17 +5,17 @@ eval pipeline can score it.
 
 - One TSV row per (document, question) pair.
 - `image` column = base64 of the document (downscaled to <= MAX_DIM so the
-  giant 4–18MP scans don't OOM the non-Qwen servers; text stays legible).
+  giant 4-18MP scans don't OOM the non-Qwen servers; text stays legible).
 - `answer` = Python list-repr string (e.g. ['$3360.00']) so process_line's ANLS
   path eval()s it, exactly like the DocVQA/InfoVQA subsets.
 - Dataset name keeps the `DocVQA` substring (-> ANLS routing) but is clearly
   custom: CustomDocVQA.
 - Also writes results/custom_index_map.json mapping each row index back to its
-  doc id + file + failure_modes, so 66_analyze_custom.py can break accuracy down
+  doc id + file + failure_modes, so eval/analyze_custom.py can break accuracy down
   by failure mode.
 
 Run on Colab after annotations.json is in custom_docs/:
-  python 95_build_custom_tsv.py
+  python setup/build_custom_tsv.py
 """
 import base64
 import io
@@ -67,7 +67,7 @@ def main():
             # tolerate .png/.jpg mismatch
             alt = list(IMG_DIR.glob(f"{doc_id}.*"))
             if not alt:
-                print(f"!! image for doc {doc_id} not found — skipping")
+                print(f"!! image for doc {doc_id} not found: skipping")
                 continue
             fpath = alt[0]
         if fpath.name not in img_cache:
@@ -103,8 +103,8 @@ def main():
     print(f"wrote {OUT_TSV}  ({len(df)} QA rows over {n_docs} docs, {skipped} empty skipped)")
     print(f"wrote {INDEX_MAP}")
     print("\nrun the eval with:")
-    print("  bash scripts/47_run_custom.sh            # direct + cot, all 3 models")
-    print("  python scripts/66_analyze_custom.py      # -> results/custom_summary.{md,csv}")
+    print("  bash scripts/inference/run_custom.sh            # direct + cot, all 3 models")
+    print("  python scripts/eval/analyze_custom.py      # -> results/custom_summary.{md,csv}")
 
 
 if __name__ == "__main__":

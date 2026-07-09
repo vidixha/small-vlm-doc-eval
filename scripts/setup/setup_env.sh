@@ -1,13 +1,13 @@
 #!/bin/bash
-# 00_setup_env.sh — Miniconda + vlmeval env setup for Colab (T4).
+# setup/setup_env.sh: Miniconda + vlmeval env setup for Colab (T4).
 # Rerun this script from scratch after any Colab disconnect:
-#   bash /content/drive/MyDrive/vlm_eval/scripts/00_setup_env.sh
+#   bash /content/drive/MyDrive/vlm_eval/scripts/setup/setup_env.sh
 set -euo pipefail
 
 CONDA_DIR=/content/miniconda3
 ENV_NAME=vlmeval
 
-# 1. Miniconda (local disk — fast; ephemeral, hence this script)
+# 1. Miniconda (local disk: fast; ephemeral, hence this script)
 if [ ! -d "$CONDA_DIR" ]; then
   wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh
   bash /tmp/miniconda.sh -b -p "$CONDA_DIR"
@@ -19,7 +19,7 @@ unset PYTHONPATH  # Colab sets this; it leaks system site-packages into the env
 conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main || true
 conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r || true
 
-# 2. Dedicated env (python 3.10 — VLMEvalKit-supported)
+# 2. Dedicated env (python 3.10: VLMEvalKit-supported)
 if ! conda env list | grep -q "^$ENV_NAME "; then
   conda create -y -n "$ENV_NAME" python=3.10
 fi

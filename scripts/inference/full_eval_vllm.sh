@@ -1,12 +1,12 @@
 #!/bin/bash
-# 35_full_eval_vllm.sh — full eval with vLLM-hosted models (continuous batching
+# inference/full_eval_vllm.sh: full eval with vLLM-hosted models (continuous batching
 # + parallel client requests; much faster than sequential HF generate on T4).
 #
 # Per model: serve with vLLM (env `vllm`) -> wait for /v1/models -> run
 # VLMEvalKit in API mode (env `vlmeval`, --base-url) -> kill server.
 # Greedy decoding enforced client-side (--temperature 0). Qwen pixel caps match
 # the HF-path config (min 256*28*28, max 1280*28*28) for comparability.
-#   bash /content/drive/MyDrive/vlm_eval/scripts/35_full_eval_vllm.sh [Model ...]
+#   bash /content/drive/MyDrive/vlm_eval/scripts/inference/full_eval_vllm.sh [Model ...]
 set -uo pipefail
 source /content/miniconda3/etc/profile.d/conda.sh
 unset PYTHONPATH
@@ -52,7 +52,7 @@ serve_and_eval() {
     ${EXTRA[$NAME]} > "$LOG_DIR/vllm_${NAME}.log" 2>&1 &
   local SERVER_PID=$!
 
-  # wait up to 45 min for readiness — Qwen3.5's linear-attention Triton
+  # wait up to 45 min for readiness: Qwen3.5's linear-attention Triton
   # autotune alone can take 20+ min on Colab's 2-core CPU (one-time, cached)
   local ok=0
   for _ in $(seq 1 540); do
@@ -63,7 +63,7 @@ serve_and_eval() {
     sleep 5
   done
   if [ $ok -ne 1 ]; then
-    echo "!!! vLLM server for $NAME failed to start — see $LOG_DIR/vllm_${NAME}.log"
+    echo "!!! vLLM server for $NAME failed to start: see $LOG_DIR/vllm_${NAME}.log"
     kill $SERVER_PID 2>/dev/null; wait $SERVER_PID 2>/dev/null
     return 1
   fi
@@ -86,5 +86,5 @@ serve_and_eval() {
 
 mkdir -p "$LOG_DIR"
 for M in "${MODELS[@]}"; do
-  serve_and_eval "$M" || echo "!!! $M failed under vLLM — fall back to 30_full_eval.sh $M"
+  serve_and_eval "$M" || echo "!!! $M failed under vLLM: fall back to inference/full_eval_hf.sh $M"
 done

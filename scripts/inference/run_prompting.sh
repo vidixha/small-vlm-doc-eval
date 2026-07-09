@@ -1,12 +1,12 @@
 #!/bin/bash
-# 45_run_prompting.sh — CoT vs direct (non-CoT) prompting eval for the sub-1B VLMs.
+# inference/run_prompting.sh: CoT vs direct (non-CoT) prompting eval for the sub-1B VLMs.
 #
-# Per model: serve with vLLM using the SAME flags as 35_full_eval_vllm.sh (so the
+# Per model: serve with vLLM using the SAME flags as inference/full_eval_vllm.sh (so the
 # `direct` mode reproduces the headline eval), wait for /v1/models, then run
-# 40_prompt_eval.py in BOTH --modes direct cot on the 300-sample subsets, then
+# inference/prompt_eval.py in BOTH --modes direct cot on the 300-sample subsets, then
 # kill the server. Greedy decoding enforced client-side.
-#   bash /content/drive/MyDrive/vlm_eval/scripts/45_run_prompting.sh [Model ...]
-#   SMOKE=1 bash .../45_run_prompting.sh Qwen3.5-0.8B    # 5-sample DocVQA smoke
+#   bash /content/drive/MyDrive/vlm_eval/scripts/inference/run_prompting.sh [Model ...]
+#   SMOKE=1 bash .../inference/run_prompting.sh Qwen3.5-0.8B    # 5-sample DocVQA smoke
 set -uo pipefail
 source /content/miniconda3/etc/profile.d/conda.sh
 unset PYTHONPATH
@@ -58,7 +58,7 @@ serve_and_eval() {
     sleep 5
   done
   if [ $ok -ne 1 ]; then
-    echo "!!! vLLM server for $NAME failed to start — see $LOG_DIR/vllm_prompt_${NAME}.log"
+    echo "!!! vLLM server for $NAME failed to start: see $LOG_DIR/vllm_prompt_${NAME}.log"
     kill $SPID 2>/dev/null; wait $SPID 2>/dev/null
     return 1
   fi
@@ -66,7 +66,7 @@ serve_and_eval() {
   echo "=== [eval] $NAME : direct + cot ==="
   conda activate vlmeval
   # shellcheck disable=SC2086
-  python "$SCRIPTS/40_prompt_eval.py" --model "$NAME" --data $DATA \
+  python "$SCRIPTS/inference/prompt_eval.py" --model "$NAME" --data $DATA \
     --modes direct cot --port $PORT --concurrency 4
   local RC=$?
 
@@ -79,4 +79,4 @@ serve_and_eval() {
 for M in "${MODELS[@]}"; do
   serve_and_eval "$M" || echo "!!! $M failed under vLLM"
 done
-echo "=== prompting eval complete — aggregate with: python $SCRIPTS/65_analyze_prompting.py ==="
+echo "=== prompting eval complete: aggregate with: python $SCRIPTS/eval/analyze_prompting.py ==="

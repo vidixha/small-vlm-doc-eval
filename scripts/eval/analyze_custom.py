@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Aggregate the custom-set prompting eval (CustomDocVQA, from 40_prompt_eval.py)
-into an overall CoT-vs-direct table PLUS a per-failure-mode accuracy breakdown —
+"""Aggregate the custom-set prompting eval (CustomDocVQA, from inference/prompt_eval.py)
+into an overall CoT-vs-direct table PLUS a per-failure-mode accuracy breakdown -
 the point of the custom set: which degradation conditions each model chokes on.
 
 Same ANLS path as the other analyzers (process_line + DocVQA 0.5 threshold).
@@ -73,13 +73,13 @@ if not fm_df.empty:
     fm_df.to_csv(OUT / "custom_failuremode_breakdown.csv", index=False)
 
 # ----- markdown -----
-lines = ["# Custom Document Set — Prompting Eval\n",
+lines = ["# Custom Document Set: Prompting Eval\n",
          f"Hand-annotated degraded-scan set ({len(imap)} QA pairs). "
          "`direct` vs `cot`, greedy, vLLM-served, ANLS (DocVQA 0.5 threshold).\n"]
 if not df.empty:
     piv = df.pivot_table(index="model", columns="mode", values="anls")
     if {"direct", "cot"}.issubset(piv.columns):
-        piv["Δ (cot−direct)"] = (piv["cot"] - piv["direct"]).round(2)
+        piv["Δ (cot-direct)"] = (piv["cot"] - piv["direct"]).round(2)
     lines += ["## Overall ANLS\n", piv.reset_index().to_markdown(index=False), "\n"]
     lines += ["## Full metrics\n", df.to_markdown(index=False), "\n"]
 if not fm_df.empty:
@@ -89,10 +89,10 @@ if not fm_df.empty:
             continue
         p = sub.pivot_table(index="failure_mode", columns="model", values="acc@0.5")
         p.insert(0, "n", sub.groupby("failure_mode")["n"].max())
-        lines += [f"## acc@0.5 by failure mode — {mode}\n",
+        lines += [f"## acc@0.5 by failure mode: {mode}\n",
                   p.reset_index().to_markdown(index=False), "\n"]
 else:
-    lines.append("_No results yet — run scripts/47_run_custom.sh first._")
+    lines.append("_No results yet: run scripts/inference/run_custom.sh first._")
 
 (OUT / "custom_summary.md").write_text("\n".join(lines))
 print(df.to_string(index=False) if not df.empty else "no results yet")

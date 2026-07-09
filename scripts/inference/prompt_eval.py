@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """Prompting-strategy eval: direct (non-CoT) vs chain-of-thought, same models,
-same 300-sample subsets, same ANLS scoring path — so the only variable is the
+same 300-sample subsets, same ANLS scoring path: so the only variable is the
 prompt.
 
-- direct : dataset.build_prompt(line) verbatim — the "Answer the question using a
+- direct : dataset.build_prompt(line) verbatim: the "Answer the question using a
            single word or phrase." prompt used by the main VLMEvalKit run. Parity
-           with 35_full_eval_vllm.sh, so `direct` reproduces the headline numbers.
+           with inference/full_eval_vllm.sh, so `direct` reproduces the headline numbers.
 - cot    : same image + question, but instruct the model to reason step by step
            and end with `Answer: <short answer>`. The final answer is parsed back
            out for ANLS; confidence (for ECE) is taken over the answer-span tokens
            only, not the reasoning.
 
-Assumes the model is already served on --port (see 45_run_prompting.sh).
+Assumes the model is already served on --port (see inference/run_prompting.sh).
 Greedy decoding (temperature 0) in both modes. Resumable JSONL per
 (model, dataset, mode) in vlm_eval/results/prompting/.
 
-  python 40_prompt_eval.py --model Qwen3.5-0.8B \
+  python inference/prompt_eval.py --model Qwen3.5-0.8B \
       --data DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300 --modes direct cot
 """
 import argparse
@@ -49,7 +49,7 @@ def extract_answer(text):
     if ms:
         start = ms[-1].end()
         ans = text[start:]
-    else:  # model ignored the format — fall back to the last non-empty line
+    else:  # model ignored the format: fall back to the last non-empty line
         lines = [l for l in text.strip().splitlines() if l.strip()]
         ans = lines[-1] if lines else text
         start = text.rfind(ans) if ans else 0
@@ -116,7 +116,7 @@ def main():
     args = ap.parse_args()
 
     # ImageVQADataset explicitly (build_dataset would route custom SUB300 names to
-    # CustomVQADataset, dropping the standard prompt suffix — prompts must match).
+    # CustomVQADataset, dropping the standard prompt suffix: prompts must match).
     from vlmeval.dataset.image_vqa import ImageVQADataset
     url = f"http://127.0.0.1:{args.port}/v1/chat/completions"
     OUT_DIR.mkdir(parents=True, exist_ok=True)

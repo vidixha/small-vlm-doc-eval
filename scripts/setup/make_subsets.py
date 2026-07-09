@@ -11,7 +11,7 @@ than base64, deduplicating repeated document images. Subsetting naively breaks
 those rows, so images are materialized before sampling.
 
 Usage:
-  python 15_make_subsets.py            # writes SMOKE + SUB300 TSVs + indices json
+  python setup/make_subsets.py            # writes SMOKE + SUB300 TSVs + indices json
 """
 import json
 import pandas as pd

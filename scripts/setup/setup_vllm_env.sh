@@ -1,7 +1,7 @@
 #!/bin/bash
-# 05_setup_vllm_env.sh — separate conda env for vLLM serving (vLLM pins its own
+# setup/setup_vllm_env.sh: separate conda env for vLLM serving (vLLM pins its own
 # torch; keeping it out of the `vlmeval` env preserves the HF fallback path).
-#   bash /content/drive/MyDrive/vlm_eval/scripts/05_setup_vllm_env.sh
+#   bash /content/drive/MyDrive/vlm_eval/scripts/setup/setup_vllm_env.sh
 set -euo pipefail
 source /content/miniconda3/etc/profile.d/conda.sh
 unset PYTHONPATH

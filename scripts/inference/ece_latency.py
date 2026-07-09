@@ -7,10 +7,10 @@ single-stream latency); the rest run with --concurrency workers (throughput).
 
 Output: JSONL per (model, dataset) in vlm_eval/results/ece/ with per-sample
 prediction, token logprobs, confidence aggregates, and wall latency.
-ECE/ANLS aggregation happens in 60_analyze.py.
+ECE/ANLS aggregation happens in eval/analyze.py.
 
 Usage (server already running on --port):
-  python 50_ece_latency.py --model Qwen3.5-0.8B --data DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300
+  python inference/ece_latency.py --model Qwen3.5-0.8B --data DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300
 """
 import argparse
 import base64
@@ -77,7 +77,7 @@ def main():
 
     # ImageVQADataset explicitly (NOT build_dataset: unknown names fall back to
     # CustomVQADataset, which lacks the "single word or phrase" prompt suffix
-    # the main eval used — prompts must match exactly)
+    # the main eval used: prompts must match exactly)
     from vlmeval.dataset.image_vqa import ImageVQADataset
     url = f"http://127.0.0.1:{args.port}/v1/chat/completions"
     OUT_DIR.mkdir(parents=True, exist_ok=True)

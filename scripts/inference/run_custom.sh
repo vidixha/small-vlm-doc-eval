@@ -1,10 +1,10 @@
 #!/bin/bash
-# 47_run_custom.sh — run the CoT-vs-direct prompting eval on the hand-annotated
-# custom document set (CustomDocVQA), built by 95_build_custom_tsv.py.
+# inference/run_custom.sh: run the CoT-vs-direct prompting eval on the hand-annotated
+# custom document set (CustomDocVQA), built by setup/build_custom_tsv.py.
 #
-# Same serving flags and driver as 45_run_prompting.sh, just pointed at the custom
-# TSV. Build the TSV first:  python scripts/95_build_custom_tsv.py
-#   bash /content/drive/MyDrive/vlm_eval/scripts/47_run_custom.sh [Model ...]
+# Same serving flags and driver as inference/run_prompting.sh, just pointed at the custom
+# TSV. Build the TSV first:  python scripts/setup/build_custom_tsv.py
+#   bash /content/drive/MyDrive/vlm_eval/scripts/inference/run_custom.sh [Model ...]
 set -uo pipefail
 source /content/miniconda3/etc/profile.d/conda.sh
 unset PYTHONPATH
@@ -16,7 +16,7 @@ PORT=8000
 DATA="CustomDocVQA"
 
 if [ ! -f "$LMUData/CustomDocVQA.tsv" ]; then
-  echo "!!! $LMUData/CustomDocVQA.tsv not found — run: python $SCRIPTS/95_build_custom_tsv.py"
+  echo "!!! $LMUData/CustomDocVQA.tsv not found: run: python $SCRIPTS/setup/build_custom_tsv.py"
   exit 1
 fi
 
@@ -55,14 +55,14 @@ serve_and_eval() {
     sleep 5
   done
   if [ $ok -ne 1 ]; then
-    echo "!!! vLLM server for $NAME failed to start — see $LOG_DIR/vllm_custom_${NAME}.log"
+    echo "!!! vLLM server for $NAME failed to start: see $LOG_DIR/vllm_custom_${NAME}.log"
     kill $SPID 2>/dev/null; wait $SPID 2>/dev/null
     return 1
   fi
 
   echo "=== [eval] $NAME on CustomDocVQA : direct + cot ==="
   conda activate vlmeval
-  python "$SCRIPTS/40_prompt_eval.py" --model "$NAME" --data $DATA \
+  python "$SCRIPTS/inference/prompt_eval.py" --model "$NAME" --data $DATA \
     --modes direct cot --port $PORT --concurrency 4 --latency-samples 0
 
   kill $SPID 2>/dev/null; wait $SPID 2>/dev/null
@@ -73,4 +73,4 @@ serve_and_eval() {
 for M in "${MODELS[@]}"; do
   serve_and_eval "$M" || echo "!!! $M failed under vLLM"
 done
-echo "=== custom eval complete — aggregate with: python $SCRIPTS/66_analyze_custom.py ==="
+echo "=== custom eval complete: aggregate with: python $SCRIPTS/eval/analyze_custom.py ==="

@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Evaluate Donut (naver-clova-ix/donut-base-finetuned-docvqa) on the hand-annotated
-CustomDocVQA set, mirroring 80_donut_eval.py but pointed at the custom 25-doc set
-instead of DocVQA_VAL_SUB300/InfoVQA_VAL_SUB300.
+"""Evaluate Donut (naver-clova-ix/donut-base-finetuned-docvqa) on the same
+300-sample subsets. Donut is a task-specific OCR-free encoder-decoder: no
+chat template, no VLMEvalKit/vLLM support: so this drives it directly via HF,
+but emits the SAME JSONL schema as inference/ece_latency.py so eval/analyze.py can
+aggregate it (model name "Donut-DocVQA").
 
-Donut is a task-specific OCR-free encoder-decoder -- no chat template, no CoT
-capability -- so this only produces a "direct" mode result. Output is written in
-the SAME record schema as 40_prompt_eval.py's direct-mode output, into
-results/prompting/Donut-DocVQA_CustomDocVQA_direct.jsonl, so 66_analyze_custom.py
-picks it up automatically once "Donut-DocVQA" is added to its MODELS list.
+Caveats (documented in the report): the checkpoint is fine-tuned on DocVQA
+train (in-domain for DocVQA leg); InfoVQA is out-of-domain for it. Greedy
+decoding; batch 1 => every sample is single-stream latency.
 
 Resumable: appends to JSONL, skips done indices.
-  python 81_donut_custom.py [--limit 5]
+  python inference/donut_eval.py [--limit 5]   # --limit for smoke test
 """
 import argparse
 import json
@@ -27,8 +27,8 @@ from transformers import DonutProcessor, VisionEncoderDecoderModel
 
 MODEL = "naver-clova-ix/donut-base-finetuned-docvqa"
 NAME = "Donut-DocVQA"
-OUT_DIR = Path("/content/drive/MyDrive/vlm_eval/results/prompting")
-DATASETS = ["CustomDocVQA"]
+OUT_DIR = Path("/content/drive/MyDrive/vlm_eval/results/ece")
+DATASETS = ["DocVQA_VAL_SUB300", "InfoVQA_VAL_SUB300"]
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--limit", type=int, default=0)
@@ -44,7 +44,7 @@ tok = processor.tokenizer
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 for ds_name in DATASETS:
     dataset = ImageVQADataset(dataset=ds_name)
-    out_file = OUT_DIR / f"{NAME}_{ds_name}_direct.jsonl"
+    out_file = OUT_DIR / f"{NAME}_{ds_name}.jsonl"
     done = set()
     if out_file.exists():
         done = {json.loads(l)["index"] for l in open(out_file) if l.strip()}
@@ -84,14 +84,14 @@ for ds_name in DATASETS:
             pred = re.sub(r"<.*?>", "", text).strip()
 
             fout.write(json.dumps({
-                "index": str(line["index"]), "mode": "direct",
-                "question": str(line["question"]), "answer": str(line["answer"]),
-                "prediction": pred, "raw": None,
-                "latency_s": latency, "n_tokens": len(lps), "n_ans_tokens": len(lps),
+                "index": str(line["index"]), "answer": str(line["answer"]),
+                "question": str(line["question"]), "prediction": pred,
+                "latency_s": latency, "n_tokens": len(lps), "logprobs": lps,
                 "conf_geo": math.exp(sum(lps) / len(lps)) if lps else None,
-                "sched": "sequential", "finish_reason": "stop",
+                "conf_mean": (sum(math.exp(x) for x in lps) / len(lps)) if lps else None,
+                "finish_reason": "stop", "mode": "sequential",
             }) + "\n")
             fout.flush()
-            if (i + 1) % 10 == 0:
+            if (i + 1) % 25 == 0:
                 print(f"  {i+1}/{len(todo)}")
     print(f"[{ds_name}] done -> {out_file}")

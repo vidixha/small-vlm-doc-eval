@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Patch the local VLMEvalKit checkout for this eval. Idempotent — safe to rerun
+"""Patch the local VLMEvalKit checkout for this eval. Idempotent: safe to rerun
 after a fresh clone (e.g. post-disconnect):
-  python /content/drive/MyDrive/vlm_eval/scripts/10_register_models.py
+  python /content/drive/MyDrive/vlm_eval/scripts/setup/register_models.py
 
 Patches:
-1. Register `Qwen3.5-0.8B` (Qwen/Qwen3.5-0.8B) in vlmeval/config.py — VLMEvalKit
+1. Register `Qwen3.5-0.8B` (Qwen/Qwen3.5-0.8B) in vlmeval/config.py: VLMEvalKit
    only ships large Qwen3.5 entries. Uses Qwen3VLChat (same class the 397B entry
    uses), greedy decoding (temperature=0) per the eval protocol in TASK.md.
 2. qwen3_vl/model.py: flash_attention_2 -> sdpa. T4 (Turing, SM75) is not
