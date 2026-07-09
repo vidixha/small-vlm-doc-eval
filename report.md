@@ -161,11 +161,11 @@ results/
 The analysis scripts regenerate aggregate tables at runtime (`summary`, `custom_summary`, the failure-mode breakdown, and the row-to-document index map); those files are not committed, since every number they contain is reproduced in this report (Sections 6 and 7, and the Appendix in full).
 
 
-## 11. Recommendation
+## 10. Recommendation
 
 For on-device document pipelines in this compute class, **Qwen3.5-0.8B remains the best single-model foundation**, but with two qualifications the public benchmarks alone would have missed. First, add orientation and deskew preprocessing before inference; this is the highest-leverage fix available, recovering failure modes where every model currently scores zero. Second, do not reuse DocVQA-calibrated confidence thresholds on captured documents; calibration must be set per input condition, and infographic-style inputs should be routed to human review or a larger model regardless of reported confidence. Use direct prompting, not chain-of-thought, for extraction. LoRA adaptation remains the lowest-cost path to closing the layout-reasoning gap, and the custom set doubles as its robustness regression suite.
 
-## 12. Appendix: Full Result Tables
+## 11. Appendix: Full Result Tables
 
 These are the complete tables the analysis scripts emit; the body of the report quotes selected columns from them.
 
@@ -200,44 +200,25 @@ These are the complete tables the analysis scripts emit; the body of the report 
 | SmolVLM-500M | cot | 70 | 44.45 | 55.71 |
 | Donut-DocVQA | direct | 70 | 38.84 | 47.14 |
 
-### A.3 Custom set, acc@0.5 by failure mode (direct)
+### A.3 Custom set, acc@0.5 by failure mode
 
+Each model column shows direct / cot. Donut has no chat capability, so it has a direct score only. Numbers recomputed from the per-sample records after merging near-duplicate tags; buckets overlap because documents carry multiple tags, and the skewed and upside-down tags sit on the same document, so the merged skewed bucket stays at n=3.
 
-| Failure mode | n | Donut-DocVQA | InternVL3-1B | Qwen3.5-0.8B | SmolVLM-500M |
+| Failure mode | n | Qwen3.5-0.8B<br>direct / cot | InternVL3-1B<br>direct / cot | SmolVLM-500M<br>direct / cot | Donut-DocVQA<br>direct |
 |---|---:|---:|---:|---:|---:|
-| **Degraded image quality** | **30** | **53.3** | **70.0** | **70.0** | **56.7** |
-| **Degraded text quality** | 11 | 45.5 | 63.6 | 63.6 | 45.5 |
-| **Dense text** | 9 | 33.3 | 22.2 | 33.3 | 33.3 |
-| **Fine print** | **9** | **22.2** | **22.2** | **22.2** | **44.4** |
-| **Faded text** | 3 | 33.3 | 33.3 | 66.7 | 66.7 |
-| **Handwritten text** | 23 | 52.2 | 60.9 | 60.9 | 65.2 |
-| **Horizontal text** | 8 | 62.5 | 100.0 | 100.0 | 50.0 |
-| **Scanned document** | 11 | 45.5 | 63.6 | 63.6 | 45.5 |
-| **Skewed document** | **6** | **0.0** | **0.0** | **0.0** | **0.0** |
-| **Struck-out text / visual cues** | 3 | 66.7 | 66.7 | 66.7 | 66.7 |
-| **Stylized logo** | 8 | 62.5 | 100.0 | 100.0 | 50.0 |
-| **Unclear text** | 3 | 66.7 | 66.7 | 66.7 | 33.3 |
-| **Vertical text** | 3 | 0.0 | 100.0 | 100.0 | 66.7 |
-
-### A.4 Custom set, acc@0.5 by failure mode (chain-of-thought)
-
-Donut has no chat capability, so no CoT column for it.
-
-| Failure mode | n | InternVL3-1B | Qwen3.5-0.8B | SmolVLM-500M |
-|---|---:|---:|---:|---:|
-| **Degraded image quality** | **30** | **50.0** | **60.0** | **66.7** |
-| **Degraded text quality** | 11 | 45.5 | 45.5 | 63.6 |
-| **Dense text** | 9 | 11.1 | 11.1 | 33.3 |
-| **Fine print** | **9** | **33.3** | **11.1** | **33.3** |
-| **Faded text** | 3 | 33.3 | 66.7 | 66.7 |
-| **Handwritten text** | 23 | 39.1 | 52.2 | 65.2 |
-| **Horizontal text** | 8 | 50.0 | 100.0 | 50.0 |
-| **Scanned document** | 11 | 45.5 | 45.5 | 63.6 |
-| **Skewed document** | **6** | **0.0** | **33.3** | **0.0** |
-| **Struck-out text** | 3 | 0.0 | 33.3 | 66.7 |
-| **Stylized logo** | 8 | 50.0 | 100.0 | 50.0 |
-| **Unclear text** | 3 | 66.7 | 66.7 | 33.3 |
-| **Vertical text** | 3 | 66.7 | 66.7 | 66.7 |
+| Degraded image quality | 30 | 73.3 / 60.0 | 76.7 / 50.0 | 60.0 / 66.7 | 56.7 |
+| Degraded text quality | 11 | 63.6 / 45.5 | 63.6 / 45.5 | 45.5 / 63.6 | 45.5 |
+| Dense text | 9 | 33.3 / 11.1 | 22.2 / 11.1 | 33.3 / 33.3 | 33.3 |
+| Faded text | 3 | 66.7 / 66.7 | 33.3 / 33.3 | 66.7 / 66.7 | 33.3 |
+| Fine print | 9 | 22.2 / 11.1 | 22.2 / 33.3 | 44.4 / 33.3 | 22.2 |
+| Handwritten text | 23 | 60.9 / 52.2 | 60.9 / 39.1 | 65.2 / 65.2 | 52.2 |
+| Horizontal text | 8 | 100.0 / 100.0 | 100.0 / 50.0 | 50.0 / 50.0 | 62.5 |
+| Scanned document | 11 | 63.6 / 45.5 | 63.6 / 45.5 | 45.5 / 63.6 | 45.5 |
+| Skewed document | 3 | 0.0 / 33.3 | 0.0 / 0.0 | 0.0 / 0.0 | 0.0 |
+| Struck-out text | 3 | 66.7 / 33.3 | 66.7 / 0.0 | 66.7 / 66.7 | 66.7 |
+| Stylized logo | 8 | 100.0 / 100.0 | 100.0 / 50.0 | 50.0 / 50.0 | 62.5 |
+| Unclear text | 3 | 66.7 / 66.7 | 66.7 / 66.7 | 33.3 / 33.3 | 66.7 |
+| Vertical text | 3 | 100.0 / 66.7 | 100.0 / 66.7 | 66.7 / 66.7 | 0.0 |
 
 ## References
 
