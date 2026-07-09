@@ -2,17 +2,17 @@
 
 ## Problem statement
 
-Sub-1B vision-language models are attractive for on-device document processing, but their document understanding ability is largely uncharacterized: published evaluations focus on 3B+ models, and generic VQA accuracy misses what pipelines need (dense text extraction, layout reasoning, and knowing when an extraction is wrong). This work benchmarks small VLMs on document tasks with metrics beyond accuracy (ANLS, calibration, latency) and probes robustness on real degraded documents.
+Sub-1B vision-language models are effective for on-device document processing, but their document understanding ability is largely uncharacterized. Published evaluations focus on 3B+ models, and generic VQA accuracy misses what pipelines need (dense text extraction, layout reasoning, and knowing when an extraction is wrong). This project benchmarks small VLMs on document tasks with metrics beyond accuracy (ANLS, calibration, latency) and probes robustness on real degraded documents.
 
 Full methodology and results: [report/Technical_Report.pdf](report/Technical_Report.pdf)
 
 ## Datasets
 
-| Dataset | Why |
+| Dataset | Justification |
 |---|---|
-| DocVQA (val, 300-sample subset) | Canonical document VQA benchmark (forms, invoices, letters); comparable with published results |
+| DocVQA (val, 300-sample subset) | Well-known document VQA benchmark (forms, invoices, letters); comparable with published results |
 | InfoVQA (val, 300-sample subset) | Infographics needing joint text + layout + graphics reasoning, beyond plain extraction |
-| [Custom set](custom_docs/) (25 docs, 70 QA) | Hand-annotated degraded scans (skew, handwriting, fine print); tests real-world robustness the public benchmarks skip and cannot be memorized from pretraining |
+| [Custom set](custom_docs/) (25 docs, 70 QA) | Custom annotated documents with failure modes (skew, handwriting, fine print, vertical text etc.); tests real-world robustness the public benchmarks skip |
 
 ## Models
 
@@ -25,8 +25,7 @@ Full methodology and results: [report/Technical_Report.pdf](report/Technical_Rep
 
 ## Code to reproduce
 
-Colab session with a T4 GPU and Drive mounted; clone the repo to `/content/drive/MyDrive/vlm_eval/`. Benchmark TSVs (~1.4 GB, not committed) are fetched in step 2. Every stage writes to Drive and resumes after a disconnect.
-
+GPU requirements: Google Colab T4 GPU. 
 ```bash
 # 1. environments
 bash scripts/setup/setup_env.sh           # miniconda + vlmeval env + VLMEvalKit
