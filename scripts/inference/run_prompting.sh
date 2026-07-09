@@ -6,7 +6,6 @@
 # inference/prompt_eval.py in BOTH --modes direct cot on the 300-sample subsets, then
 # kill the server. Greedy decoding enforced client-side.
 #   bash /content/drive/MyDrive/vlm_eval/scripts/inference/run_prompting.sh [Model ...]
-#   SMOKE=1 bash .../inference/run_prompting.sh Qwen3.5-0.8B    # 5-sample DocVQA smoke
 set -uo pipefail
 source /content/miniconda3/etc/profile.d/conda.sh
 unset PYTHONPATH
@@ -16,11 +15,7 @@ SCRIPTS=/content/drive/MyDrive/vlm_eval/scripts
 LOG_DIR=/content/drive/MyDrive/vlm_eval/logs
 PORT=8000
 
-if [ "${SMOKE:-0}" = "1" ]; then
-  DATA="DocVQA_VAL_SMOKE"
-else
-  DATA="DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300"
-fi
+DATA="DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300"
 
 declare -A REPO=(
   [Qwen3.5-0.8B]="Qwen/Qwen3.5-0.8B"

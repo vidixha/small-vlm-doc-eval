@@ -4,8 +4,8 @@
 #
 # Per model: serve with vLLM (env `vllm`) -> wait for /v1/models -> run
 # VLMEvalKit in API mode (env `vlmeval`, --base-url) -> kill server.
-# Greedy decoding enforced client-side (--temperature 0). Qwen pixel caps match
-# the HF-path config (min 256*28*28, max 1280*28*28) for comparability.
+# Greedy decoding enforced client-side (--temperature 0). Qwen pixel caps
+# (min 256*28*28, max 1280*28*28) keep image tiling within T4 memory.
 #   bash /content/drive/MyDrive/vlm_eval/scripts/inference/full_eval_vllm.sh [Model ...]
 set -uo pipefail
 source /content/miniconda3/etc/profile.d/conda.sh
@@ -15,15 +15,9 @@ export LMUData=/content/drive/MyDrive/vlm_eval/LMUData
 WORK_DIR=/content/drive/MyDrive/eval_work
 LOG_DIR=/content/drive/MyDrive/vlm_eval/logs
 PORT=8000
-# SMOKE=1 -> 5-sample DocVQA smoke set instead of the full 300-sample subsets
-if [ "${SMOKE:-0}" = "1" ]; then
-  DATA="DocVQA_VAL_SMOKE"
-  DC='{"DocVQA_VAL_SMOKE": {"class": "ImageVQADataset", "dataset": "DocVQA_VAL_SMOKE"}}'
-else
-  DATA="DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300"
-  DC='{"DocVQA_VAL_SUB300": {"class": "ImageVQADataset", "dataset": "DocVQA_VAL_SUB300"},
-       "InfoVQA_VAL_SUB300": {"class": "ImageVQADataset", "dataset": "InfoVQA_VAL_SUB300"}}'
-fi
+DATA="DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300"
+DC='{"DocVQA_VAL_SUB300": {"class": "ImageVQADataset", "dataset": "DocVQA_VAL_SUB300"},
+     "InfoVQA_VAL_SUB300": {"class": "ImageVQADataset", "dataset": "InfoVQA_VAL_SUB300"}}'
 
 declare -A REPO=(
   [Qwen3.5-0.8B]="Qwen/Qwen3.5-0.8B"
@@ -86,5 +80,5 @@ serve_and_eval() {
 
 mkdir -p "$LOG_DIR"
 for M in "${MODELS[@]}"; do
-  serve_and_eval "$M" || echo "!!! $M failed under vLLM: fall back to inference/full_eval_hf.sh $M"
+  serve_and_eval "$M" || echo "!!! $M failed under vLLM"
 done

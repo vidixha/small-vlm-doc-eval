@@ -36,9 +36,8 @@ bash scripts/setup/setup_env.sh           # miniconda + vlmeval env + VLMEvalKit
 bash scripts/setup/setup_vllm_env.sh      # separate vllm env (pins its own torch)
 python scripts/setup/register_models.py   # register the 3 models (T4 sdpa fix)
 
-# 2. data + sanity check
+# 2. data
 python scripts/setup/make_subsets.py      # fixed-seed 300-sample DocVQA/InfoVQA subsets
-bash scripts/inference/smoke_test.sh      # mandatory 5-sample run per model
 
 # 3. main evaluation (vLLM-served, greedy)
 bash scripts/inference/full_eval_vllm.sh  # headline ANLS, 3 models x 2 benchmarks
@@ -56,5 +55,3 @@ python scripts/eval/analyze.py            # main summary
 python scripts/eval/analyze_prompting.py  # prompting comparison
 python scripts/eval/analyze_custom.py     # custom-set summary + failure-mode breakdown
 ```
-
-`scripts/inference/full_eval_hf.sh` is a plain HF-transformers fallback for step 3; note InternVL3-1B only runs via the vLLM path on transformers 5.x.

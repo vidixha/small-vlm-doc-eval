@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Build fixed-seed evaluation subsets (TASK.md §4: same seed, same N, identical
-subset for all models) plus a 5-row smoke set.
+"""Build fixed-seed evaluation subsets (same seed, same N, identical subset for
+all models).
 
 Current VLMEvalKit dropped `--limit`, so subsets are materialized as custom TSVs
 in LMUData and passed via --data-config with class=ImageVQADataset. Names keep
@@ -11,7 +11,7 @@ than base64, deduplicating repeated document images. Subsetting naively breaks
 those rows, so images are materialized before sampling.
 
 Usage:
-  python setup/make_subsets.py            # writes SMOKE + SUB300 TSVs + indices json
+  python setup/make_subsets.py            # writes SUB300 TSVs + indices json
 """
 import json
 import pandas as pd
@@ -23,7 +23,7 @@ N = 300
 
 meta = {"seed": SEED, "n": N, "datasets": {}}
 
-for name, smoke in [("DocVQA_VAL", True), ("InfoVQA_VAL", False)]:
+for name in ["DocVQA_VAL", "InfoVQA_VAL"]:
     print(f"loading {name}.tsv ...")
     df = pd.read_csv(f"{LMU}/{name}.tsv", sep="\t", dtype=str)
     print(f"  {len(df)} rows, columns: {list(df.columns)}")
@@ -41,12 +41,6 @@ for name, smoke in [("DocVQA_VAL", True), ("InfoVQA_VAL", False)]:
     sub.to_csv(f"{LMU}/{name}_SUB{N}.tsv", sep="\t", index=False)
     meta["datasets"][f"{name}_SUB{N}"] = [str(i) for i in sub["index"].tolist()]
     print(f"  wrote {name}_SUB{N}.tsv ({len(sub)} rows)")
-
-    if smoke:
-        sm = df.head(5)
-        sm.to_csv(f"{LMU}/{name}_SMOKE.tsv", sep="\t", index=False)
-        meta["datasets"][f"{name}_SMOKE"] = [str(i) for i in sm["index"].tolist()]
-        print(f"  wrote {name}_SMOKE.tsv (5 rows)")
 
 with open(OUT_META, "w") as f:
     json.dump(meta, f, indent=1)

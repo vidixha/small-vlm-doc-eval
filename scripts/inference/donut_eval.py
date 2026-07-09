@@ -10,7 +10,7 @@ train (in-domain for DocVQA leg); InfoVQA is out-of-domain for it. Greedy
 decoding; batch 1 => every sample is single-stream latency.
 
 Resumable: appends to JSONL, skips done indices.
-  python inference/donut_eval.py [--limit 5]   # --limit for smoke test
+  python inference/donut_eval.py [--limit 5]   # optional quick check on 5 samples
 """
 import argparse
 import json
