@@ -188,34 +188,65 @@ These are the complete tables the analysis scripts emit; the body of the report 
 
 ### A.2 Custom set, all metrics
 
-25 documents, 70 QA pairs (n=70 for every cell), ANLS with the standard 0.5 threshold, greedy decoding. Donut has no chat capability, so it has no cot column.
+25 documents, 70 QA pairs (n=70 for every cell), ANLS with the standard 0.5 threshold, greedy decoding. Donut has no chat capability, so it has no cot cells.
 
-| Model | ANLS<br>direct | ANLS<br>cot | acc@0.5<br>direct | acc@0.5<br>cot |
-|---|---:|---:|---:|---:|
-| Qwen3.5-0.8B | 54.84 | 46.69 | 62.86 | 52.86 |
-| InternVL3-1B | 57.03 | 34.91 | 62.86 | 40.00 |
-| SmolVLM-500M | 40.30 | 44.45 | 51.43 | 55.71 |
-| Donut-DocVQA | 38.84 | - | 47.14 | - |
+<table>
+  <thead>
+    <tr>
+      <th rowspan="2">Model</th>
+      <th colspan="2">ANLS</th>
+      <th colspan="2">acc@0.5</th>
+    </tr>
+    <tr>
+      <th>direct</th><th>cot</th>
+      <th>direct</th><th>cot</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Qwen3.5-0.8B</td><td>54.84</td><td>46.69</td><td>62.86</td><td>52.86</td></tr>
+    <tr><td>InternVL3-1B</td><td>57.03</td><td>34.91</td><td>62.86</td><td>40.00</td></tr>
+    <tr><td>SmolVLM-500M</td><td>40.30</td><td>44.45</td><td>51.43</td><td>55.71</td></tr>
+    <tr><td>Donut-DocVQA</td><td>38.84</td><td>-</td><td>47.14</td><td>-</td></tr>
+  </tbody>
+</table>
 
 ### A.3 Custom set, acc@0.5 by failure mode
 
-Each model column shows direct / cot. Donut has no chat capability, so it has a direct score only. Numbers recomputed from the per-sample records after merging near-duplicate tags; buckets overlap because documents carry multiple tags, and the skewed and upside-down tags sit on the same document, so the merged skewed bucket stays at n=3.
+Numbers recomputed from the per-sample records after merging near-duplicate tags; buckets overlap because documents carry multiple tags, and the skewed and upside-down tags sit on the same document, so the merged skewed bucket stays at n=3. Donut has no chat capability, so it has a direct column only.
 
-| Failure mode | n | Qwen3.5-0.8B<br>direct / cot | InternVL3-1B<br>direct / cot | SmolVLM-500M<br>direct / cot | Donut-DocVQA<br>direct |
-|---|---:|---:|---:|---:|---:|
-| Degraded image quality | 30 | 73.3 / 60.0 | 76.7 / 50.0 | 60.0 / 66.7 | 56.7 |
-| Degraded text quality | 11 | 63.6 / 45.5 | 63.6 / 45.5 | 45.5 / 63.6 | 45.5 |
-| Dense text | 9 | 33.3 / 11.1 | 22.2 / 11.1 | 33.3 / 33.3 | 33.3 |
-| Faded text | 3 | 66.7 / 66.7 | 33.3 / 33.3 | 66.7 / 66.7 | 33.3 |
-| Fine print | 9 | 22.2 / 11.1 | 22.2 / 33.3 | 44.4 / 33.3 | 22.2 |
-| Handwritten text | 23 | 60.9 / 52.2 | 60.9 / 39.1 | 65.2 / 65.2 | 52.2 |
-| Horizontal text | 8 | 100.0 / 100.0 | 100.0 / 50.0 | 50.0 / 50.0 | 62.5 |
-| Scanned document | 11 | 63.6 / 45.5 | 63.6 / 45.5 | 45.5 / 63.6 | 45.5 |
-| Skewed document | 3 | 0.0 / 33.3 | 0.0 / 0.0 | 0.0 / 0.0 | 0.0 |
-| Struck-out text | 3 | 66.7 / 33.3 | 66.7 / 0.0 | 66.7 / 66.7 | 66.7 |
-| Stylized logo | 8 | 100.0 / 100.0 | 100.0 / 50.0 | 50.0 / 50.0 | 62.5 |
-| Unclear text | 3 | 66.7 / 66.7 | 66.7 / 66.7 | 33.3 / 33.3 | 66.7 |
-| Vertical text | 3 | 100.0 / 66.7 | 100.0 / 66.7 | 66.7 / 66.7 | 0.0 |
+<table>
+  <thead>
+    <tr>
+      <th rowspan="2">Failure mode</th>
+      <th rowspan="2">n</th>
+      <th colspan="2">Qwen3.5-0.8B</th>
+      <th colspan="2">InternVL3-1B</th>
+      <th colspan="2">SmolVLM-500M</th>
+      <th>Donut-DocVQA</th>
+    </tr>
+    <tr>
+      <th>direct</th><th>cot</th>
+      <th>direct</th><th>cot</th>
+      <th>direct</th><th>cot</th>
+      <th>direct</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Degraded image quality</td><td>30</td><td>73.3</td><td>60.0</td><td>76.7</td><td>50.0</td><td>60.0</td><td>66.7</td><td>56.7</td></tr>
+    <tr><td>Degraded text quality</td><td>11</td><td>63.6</td><td>45.5</td><td>63.6</td><td>45.5</td><td>45.5</td><td>63.6</td><td>45.5</td></tr>
+    <tr><td>Dense text</td><td>9</td><td>33.3</td><td>11.1</td><td>22.2</td><td>11.1</td><td>33.3</td><td>33.3</td><td>33.3</td></tr>
+    <tr><td>Faded text</td><td>3</td><td>66.7</td><td>66.7</td><td>33.3</td><td>33.3</td><td>66.7</td><td>66.7</td><td>33.3</td></tr>
+    <tr><td>Fine print</td><td>9</td><td>22.2</td><td>11.1</td><td>22.2</td><td>33.3</td><td>44.4</td><td>33.3</td><td>22.2</td></tr>
+    <tr><td>Handwritten text</td><td>23</td><td>60.9</td><td>52.2</td><td>60.9</td><td>39.1</td><td>65.2</td><td>65.2</td><td>52.2</td></tr>
+    <tr><td>Horizontal text</td><td>8</td><td>100.0</td><td>100.0</td><td>100.0</td><td>50.0</td><td>50.0</td><td>50.0</td><td>62.5</td></tr>
+    <tr><td>Scanned document</td><td>11</td><td>63.6</td><td>45.5</td><td>63.6</td><td>45.5</td><td>45.5</td><td>63.6</td><td>45.5</td></tr>
+    <tr><td>Skewed document</td><td>3</td><td>0.0</td><td>33.3</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr>
+    <tr><td>Struck-out text</td><td>3</td><td>66.7</td><td>33.3</td><td>66.7</td><td>0.0</td><td>66.7</td><td>66.7</td><td>66.7</td></tr>
+    <tr><td>Stylized logo</td><td>8</td><td>100.0</td><td>100.0</td><td>100.0</td><td>50.0</td><td>50.0</td><td>50.0</td><td>62.5</td></tr>
+    <tr><td>Unclear text</td><td>3</td><td>66.7</td><td>66.7</td><td>66.7</td><td>66.7</td><td>33.3</td><td>33.3</td><td>66.7</td></tr>
+    <tr><td>Vertical text</td><td>3</td><td>100.0</td><td>66.7</td><td>100.0</td><td>66.7</td><td>66.7</td><td>66.7</td><td>0.0</td></tr>
+  </tbody>
+</table>
 
 ## References
 
