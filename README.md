@@ -16,11 +16,11 @@ Full methodology and results: [report.md](report.md)
 
 ## Models
 
-| Model | Size | Why |
+| Model | Size | Why? |
 |---|---|---|
-| Qwen3.5-0.8B | 0.8B | Newest sub-1B entrant; document understanding is an explicit design goal |
-| InternVL3-1B | ~1B | Resolution-optimized encoder (dynamic tiling); tests if encoder resolution drives document performance |
-| SmolVLM-500M-Instruct | 0.5B | Purpose-built edge-native design; the "designed for constraint" reference |
+| Qwen3.5-0.8B | 0.8B | Newest sub-1B model with document understanding as an explicit design goal |
+| InternVL3-1B | ~1B | Resolution-optimized encoder (dynamic tiling). Helps test if encoder resolution drives document performance |
+| SmolVLM-500M-Instruct | 0.5B | Purpose-built edge-native design |
 | Donut (docvqa-ft) | ~0.2B | Task-specific OCR-free specialist baseline, fine-tuned on DocVQA train |
 
 ## Code to reproduce
