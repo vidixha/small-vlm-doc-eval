@@ -1,0 +1,8 @@
+model,mode,n,anls,acc@0.5
+Qwen3.5-0.8B,direct,70,54.84,62.86
+Qwen3.5-0.8B,cot,70,46.69,52.86
+InternVL3-1B,direct,70,57.03,62.86
+InternVL3-1B,cot,70,34.91,40.0
+SmolVLM-500M,direct,70,40.3,51.43
+SmolVLM-500M,cot,70,44.45,55.71
+Donut-DocVQA,direct,70,38.84,47.14

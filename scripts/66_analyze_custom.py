@@ -23,7 +23,7 @@ BASE = Path("/content/drive/MyDrive/vlm_eval")
 PROMPT_DIR = BASE / "results" / "prompting"
 INDEX_MAP = BASE / "results" / "custom_index_map.json"
 OUT = BASE / "results"
-MODELS = ["Qwen3.5-0.8B", "InternVL3-1B", "SmolVLM-500M"]
+MODELS = ["Qwen3.5-0.8B", "InternVL3-1B", "SmolVLM-500M", "Donut-DocVQA"]
 MODES = ["direct", "cot"]
 DS = "CustomDocVQA"
 
@@ -31,10 +31,6 @@ DS = "CustomDocVQA"
 def anls_of(answer, prediction):
     line = pd.Series({"answer": answer, "prediction": prediction})
     return float(hit_calculate([process_line(line, method="anls")], "DocVQA")[0])
-
-
-def norm_mode(m):
-    return m.strip().lower()
 
 
 imap = json.loads(INDEX_MAP.read_text()) if INDEX_MAP.exists() else {}
@@ -54,9 +50,7 @@ for model in MODELS:
         overall.append({"model": model, "mode": mode, "n": len(ok),
                         "anls": round(float(anls.mean()) * 100, 2),
                         "acc@0.5": round(float(correct.mean()) * 100, 2)})
-        for r, c in zip(ok, correct):
-            by_mode_records[(model, mode)] = by_mode_records.get((model, mode), [])
-            by_mode_records[(model, mode)].append((str(r["index"]), c))
+        by_mode_records[(model, mode)] = list(zip([str(r["index"]) for r in ok], correct))
 
 df = pd.DataFrame(overall)
 OUT.mkdir(parents=True, exist_ok=True)
@@ -65,15 +59,12 @@ df.to_csv(OUT / "custom_summary.csv", index=False)
 # ----- per-failure-mode accuracy breakdown -----
 # failure modes are free-text; normalize (lower/strip) for grouping.
 fm_rows = []
-all_modes = set()
 for (model, mode), recs in by_mode_records.items():
     bucket = defaultdict(list)
     for index, c in recs:
         meta = imap.get(index, {})
-        for fm in meta.get("failure_modes", []) or ["(none)"]:
-            key = fm.strip().lower()
-            bucket[key].append(c)
-            all_modes.add(key)
+        for fm in (meta.get("failure_modes") or ["(none)"]):
+            bucket[fm.strip().lower()].append(c)
     for fm, cs in bucket.items():
         fm_rows.append({"failure_mode": fm, "model": model, "mode": mode,
                         "n": len(cs), "acc@0.5": round(float(np.mean(cs)) * 100, 1)})
@@ -92,14 +83,12 @@ if not df.empty:
     lines += ["## Overall ANLS\n", piv.reset_index().to_markdown(index=False), "\n"]
     lines += ["## Full metrics\n", df.to_markdown(index=False), "\n"]
 if not fm_df.empty:
-    # acc@0.5 pivot: failure_mode x model (cot mode, where reasoning should help most)
     for mode in MODES:
         sub = fm_df[fm_df["mode"] == mode]
         if sub.empty:
             continue
         p = sub.pivot_table(index="failure_mode", columns="model", values="acc@0.5")
-        cnt = sub.groupby("failure_mode")["n"].max()
-        p.insert(0, "n", cnt)
+        p.insert(0, "n", sub.groupby("failure_mode")["n"].max())
         lines += [f"## acc@0.5 by failure mode — {mode}\n",
                   p.reset_index().to_markdown(index=False), "\n"]
 else:

@@ -26,7 +26,7 @@ declare -A REPO=(
   [SmolVLM-500M]="HuggingFaceTB/SmolVLM-500M-Instruct"
 )
 declare -A EXTRA=(
-  [Qwen3.5-0.8B]="--mm-processor-kwargs {\\\"min_pixels\\\":200704,\\\"max_pixels\\\":1003520}"
+  [Qwen3.5-0.8B]='--mm-processor-kwargs {"min_pixels":200704,"max_pixels":1003520}'
   [InternVL3-1B]="--trust-remote-code"
   [SmolVLM-500M]=""
 )
