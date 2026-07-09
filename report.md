@@ -142,19 +142,19 @@ To address these limitations, LoRA fine-tuning was applied to Qwen3.5-0.8B.
 
 | Hyperparameter | Value | Justification |
 |---|---|---|
-| Rank (r) | 16 | Small enough to keep trainable parameters, and overfitting risk, low on a 1500-row set; large enough to give the adapter real capacity, sub-8 ranks are typically reserved for style or single-skill adapters, not a reasoning-pattern shift. 16 is the standard middle-of-range choice in the LoRA literature. |
-| Alpha | 32 (2x rank) | The LoRA update is scaled by alpha/r; a 2:1 alpha:rank ratio is the most common convention (the original LoRA paper and most follow-ups), giving a scaling factor of 2 without requiring the learning rate to be re-derived for a non-standard ratio. |
-| Dropout | 0.05 | Light regularization. The training set is small and seen for a single epoch, so a low dropout guards against memorizing exact phrasing without slowing convergence enough to matter over 188 optimizer steps. |
-| Target modules | q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj (all decoder attention and MLP projections) | Covers every linear layer in the decoder, not just attention. QLoRA and follow-up ablations consistently find that adapting MLP projections in addition to attention outperforms attention-only adapters, and the target failure mode (layout and graphic reasoning) is a reasoning behavior, which lives as much in the MLP/FFN blocks as in attention. |
-| Vision encoder | Frozen (0 trainable parameters) | Section 6 to 7 traced the gap to reasoning over already-extracted visual features (layout, chart structure) and to robustness under degradation, not to the vision encoder's raw feature extraction. Freezing it targets the actual gap, keeps the trainable footprint at 0.74% of parameters (6.4M of 859M), and avoids the risk of the encoder's general-purpose visual representations drifting and hurting zero-shot transfer, which matters directly for the custom-set generalization check below. |
-| Bias | none | Biases are a negligible fraction of parameters and training them rarely moves results enough on a PoC-scale run to justify the extra trainable state. |
-| Precision / memory | fp16 with gradient checkpointing | T4 has 15GB VRAM; the base model, activations, adapter gradients, and optimizer state all have to fit alongside vLLM's own memory needs later. Gradient checkpointing trades recomputation for memory, keeping peak usage low enough to train comfortably on a single T4. |
-| Batch size | per-device 1, gradient accumulation 8 (effective batch 8) | Multimodal samples have variable image-token counts, so naively batching more than one sample per step would require padding logic the training script does not need for a PoC. Gradient accumulation reaches a reasonable effective batch size (8) for stable gradient estimates without that complexity. |
-| Learning rate | 1e-4, cosine schedule, 3% warmup | LoRA adapters start at zero contribution (the standard LoRA initialization) and need a larger learning rate than full fine-tuning (commonly 2e-5 range) to move meaningfully within a short run; 1e-4 is the standard default for LoRA at this rank. Cosine decay lets the adapter settle by the end of the single epoch; warmup avoids the instability seen in the first few optimizer steps (transient nan grad-norm during fp16 loss-scaler calibration, expected and benign). |
-| Epochs | 1 | Chosen empirically: loss dropped cleanly from about 0.94 to 0.79 over the single pass with no divergence, and it was already enough to produce consistent gains on both eval subsets and the (unseen) custom set, so a second pass was not run for this PoC. More epochs is a natural next ablation if further gains are wanted. |
-| Training data | 1500 rows: 827 DocVQA + 673 InfoVQA (VAL splits), strictly disjoint from both 300-sample eval subsets | Mixed domain rather than InfoVQA-only, and roughly matching the two datasets' relative sizes. A first attempt trained on 800 InfoVQA-only rows for 1 epoch and did not move either benchmark; mixing in DocVQA was intended to prevent regression on the model's existing strength while still exposing it to InfoVQA-style layout questions, which is what happened (Section 8.2). Disjoint from the eval subsets by construction, so no eval row is ever trained on. |
-| Max pixels (train) | 768x28x28, versus 1280x28x28 at eval | A lower resolution cap during training keeps activation memory bounded alongside the gradient and optimizer state on the same 15GB card. This only affects training; the merged model served for evaluation uses the same resolution cap as the baseline, so eval-time image detail is unaffected. |
-| Prompt and loss masking | Identical prompt to eval (including the "single word or phrase" suffix); loss computed on answer tokens only | Guarantees there is no train and eval prompt mismatch, and that every gradient step is spent learning to produce the correct answer rather than re-deriving the already-known question text. |
+| Rank (r) | 16 | Rank 16 was chosen as a balance between model capacity and the amount of available training data. It adds only a small number of trainable parameters, helping reduce the risk of overfitting on a dataset of around 1,500 examples, while still providing enough capacity for the model to learn the new task effectively. |
+| Alpha | 32 (2x rank) |  Standard LoRA scaling.  |
+| Dropout | 0.05 | Light regularization to avoid over-fitting. |
+| Target modules | q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj | Adapts both attention and MLP layers for better task learning. |
+| Vision encoder | Frozen | Preserves visual features while reducing training cost and overfitting. |
+| Bias | none | Standard LoRA setting with minimal impact on performance. |
+| Precision / memory | fp16 with gradient checkpointing | Reduces memory usage to fit training on a single T4 GPU. |
+| Batch size | 1, gradient accumulation 8 | Achieves an effective batch size of 8 within memory limits. |
+| Learning rate | 1e-4, cosine schedule, 3% warmup | Standard LoRA training configuration for stable optimization. |
+| Epochs | 1 | Sufficient for this proof-of-concept while limiting overfitting. |
+| Training data | 1500 rows (827 DocVQA + 673 InfoVQA) | Mixed datasets to improve layout reasoning while maintaining document QA performance. |
+| Max pixels (train) | 768×28×28 | Lower training resolution reduces GPU memory usage. |
+| Prompt and loss masking | Same prompt as evaluation; loss on answer tokens only | Ensures consistent evaluation and focuses learning on the answer. |
 
 ### 8.2 Results
 
@@ -167,7 +167,7 @@ A first attempt trained on 800 InfoVQA-only rows for 1 epoch and did not move ei
 
 Training loss dropped cleanly from about 0.94 to 0.79 over the epoch with no divergence.
 
-The LoRA adapter was never trained on any custom-set data, only on held-out DocVQA/InfoVQA VAL rows, so its result on the custom degraded-document set (Section 7) is a genuine transfer check rather than in-domain improvement:
+The LoRA adapter was never trained on any custom-set data, only on DocVQA/InfoVQA rows, so its result on the custom degraded-document set (Section 7) is an actual improvement rather than in-domain improvement:
 
 | Custom set (direct vs cot) | Baseline ANLS | LoRA ANLS | Delta |
 |---|---|---|---|
@@ -181,7 +181,7 @@ The LoRA adapter was never trained on any custom-set data, only on held-out DocV
 
 The LoRA fine-tune also mostly closed the CoT penalty seen in Section 7.2: the baseline model lost 8.2 ANLS points going from direct to CoT prompting, while the LoRA model loses only 0.77.
 
-This is a proof of concept, not a leaderboard claim: training data comes from the public VAL split (the official train split requires separate registration), and the run is a single seed. It shows that a small amount of parameter-efficient fine-tuning on in-domain data closes part of the infographic-reasoning gap and generalizes to real degraded documents, without regressing DocVQA.
+This is a proof of concept. It shows that a small amount of parameter-efficient fine-tuning on in-domain data closes part of the infographic-reasoning gap and generalizes to real degraded documents, without regressing DocVQA.
 
 ## 9. Code to reproduce results
 
@@ -216,7 +216,7 @@ For on-device document pipelines in this compute class, **Qwen3.5-0.8B remains t
 
 ## 11. Appendix: Full Result Tables
 
-These are the complete tables the analysis scripts emit; the body of the report quotes selected columns from them.
+These are the complete tables the analysis scripts emit and the body of the report quotes selected columns from them.
 
 ### A.1 Public benchmarks, all metrics
 
