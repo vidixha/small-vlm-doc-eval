@@ -4,7 +4,6 @@ eval_work/
 lora/images/
 lora/ckpt/
 lora/*.jsonl
-custom_docs/
 annotator/
 logs/
 
