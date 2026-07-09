@@ -145,7 +145,23 @@ A first attempt trained on 800 InfoVQA-only rows for 1 epoch and did not move ei
 | InfoVQA_VAL_SUB300 | 54.1 | **61.27** | **+7.17** |
 | DocVQA_VAL_SUB300 | 86.9 | **89.70** | **+2.80** |
 
-Training loss dropped cleanly from about 0.94 to 0.79 over the epoch with no divergence. This is a proof of concept, not a leaderboard claim: training data comes from the public VAL split (the official train split requires separate registration), and the run is a single seed. It shows that a small amount of parameter-efficient fine-tuning on in-domain data closes part of the infographic-reasoning gap without regressing DocVQA.
+Training loss dropped cleanly from about 0.94 to 0.79 over the epoch with no divergence.
+
+The LoRA adapter was never trained on any custom-set data, only on held-out DocVQA/InfoVQA VAL rows, so its result on the custom degraded-document set (Section 7) is a genuine transfer check rather than in-domain improvement:
+
+| Custom set (direct vs cot) | Baseline ANLS | LoRA ANLS | Delta |
+|---|---|---|---|
+| Direct | 54.8 | **57.55** | **+2.75** |
+| CoT | 46.69 | **56.78** | **+10.09** |
+
+| Custom set acc@0.5 | Baseline | LoRA | Delta |
+|---|---|---|---|
+| Direct | 62.9 | **65.71** | +2.8 |
+| CoT | 52.86 | **64.29** | +11.4 |
+
+The LoRA fine-tune also mostly closed the CoT penalty seen in Section 7.2: the baseline model lost 8.2 ANLS points going from direct to CoT prompting, while the LoRA model loses only 0.77.
+
+This is a proof of concept, not a leaderboard claim: training data comes from the public VAL split (the official train split requires separate registration), and the run is a single seed. It shows that a small amount of parameter-efficient fine-tuning on in-domain data closes part of the infographic-reasoning gap and generalizes to real degraded documents, without regressing DocVQA.
 
 ## 9. Code to reproduce results
 
@@ -167,6 +183,8 @@ results/
   Qwen3.5-0.8B-LoRA/                 LoRA PoC results (Section 8):
     DocVQA_VAL_SUB300_acc.csv       ANLS on the DocVQA eval subset, LoRA-merged model
     InfoVQA_VAL_SUB300_acc.csv      ANLS on the InfoVQA eval subset, LoRA-merged model
+    CustomDocVQA_direct.jsonl       custom-set predictions, direct prompting, LoRA-merged model
+    CustomDocVQA_cot.jsonl          custom-set predictions, chain-of-thought, LoRA-merged model
 ```
 
 The analysis scripts regenerate aggregate tables at runtime (`summary`, `custom_summary`, the failure-mode breakdown, and the row-to-document index map); those files are not committed, since every number they contain is reproduced in this report (Sections 6 and 7, and the Appendix in full).
