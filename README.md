@@ -1,33 +1,31 @@
 # Small VLMs for Document Understanding
 
-Evaluation of sub-1B vision-language models (Qwen3.5-0.8B, InternVL3-1B, SmolVLM-500M, plus a Donut specialist baseline) on DocVQA, InfoVQA, and a custom set of 25 hand-annotated degraded documents. Metrics: ANLS, calibration (ECE), latency, and direct vs chain-of-thought prompting.
-
-Full methodology, results, and discussion: **[report/Technical_Report.pdf](report/Technical_Report.pdf)** (source: [report/report.md](report/report.md)).
-
 ## Problem statement
 
-Vision-language models under 1B parameters show strong general visual reasoning, which makes them attractive for on-device and edge deployment where compute and memory are tightly constrained. However, their performance on document understanding (extracting and reasoning over forms, invoices, reports, and infographics) is largely uncharacterized: published evaluations focus on models in the 3B+ range, and generic VQA accuracy does not capture what document pipelines actually need. Three capabilities matter in practice: dense text extraction, layout-aware reasoning, and knowing when an extraction is wrong, because a deployed pipeline must decide when to auto-accept a field value and when to defer to review.
+Sub-1B vision-language models are attractive for on-device document processing, but their document understanding ability is largely uncharacterized: published evaluations focus on 3B+ models, and generic VQA accuracy misses what pipelines need (dense text extraction, layout reasoning, and knowing when an extraction is wrong). This work benchmarks small VLMs on document tasks with metrics beyond accuracy (ANLS, calibration, latency) and probes robustness on real degraded documents.
 
-This work addresses that gap in three parts:
+Full methodology and results: [report/Technical_Report.pdf](report/Technical_Report.pdf)
 
-1. A systematic evaluation of architecturally distinct sub-1B VLMs on document benchmarks, with metrics beyond accuracy (calibration and latency).
-2. A custom, hand-annotated evaluation set ([custom_docs/](custom_docs/), 25 images, 70 QA pairs with failure-mode tags) probing robustness to real-world document degradation, which public benchmarks do not isolate.
-3. An evidence-based, parameter-efficient improvement strategy targeted at the observed failure pattern.
+## Datasets
 
-## Repository layout
+| Dataset | Why |
+|---|---|
+| DocVQA (val, 300-sample subset) | Canonical document VQA benchmark (forms, invoices, letters); comparable with published results |
+| InfoVQA (val, 300-sample subset) | Infographics needing joint text + layout + graphics reasoning, beyond plain extraction |
+| [Custom set](custom_docs/) (25 docs, 70 QA) | Hand-annotated degraded scans (skew, handwriting, fine print); tests real-world robustness the public benchmarks skip and cannot be memorized from pretraining |
 
-```
-scripts/setup/       environments, model registration, benchmark subsets, custom-set TSV
-scripts/inference/   model serving and prediction runs (main eval, prompting, ECE, Donut)
-scripts/eval/        analysis: summary tables and failure-mode breakdowns
-custom_docs/         the public custom dataset: 25 document images + annotations.json
-results/             all result tables and per-sample records
-report/              technical report (md + pdf)
-```
+## Models
 
-## How to run
+| Model | Size | Why |
+|---|---|---|
+| Qwen3.5-0.8B | 0.8B | Newest sub-1B entrant; document understanding is an explicit design goal |
+| InternVL3-1B | ~1B | Resolution-optimized encoder (dynamic tiling); tests if encoder resolution drives document performance |
+| SmolVLM-500M-Instruct | 0.5B | Purpose-built edge-native design; the "designed for constraint" reference |
+| Donut (docvqa-ft) | ~0.2B | Task-specific OCR-free specialist baseline, fine-tuned on DocVQA train |
 
-Prerequisites: a Google Colab session with a T4 GPU and Drive mounted. Scripts assume the project lives at `/content/drive/MyDrive/vlm_eval/`, so clone or copy the repository there. Benchmark TSVs (about 1.4 GB, not committed) are fetched automatically in step 2. Every stage writes to Drive and is resumable after a disconnect.
+## Code to reproduce
+
+Colab session with a T4 GPU and Drive mounted; clone the repo to `/content/drive/MyDrive/vlm_eval/`. Benchmark TSVs (~1.4 GB, not committed) are fetched in step 2. Every stage writes to Drive and resumes after a disconnect.
 
 ```bash
 # 1. environments
