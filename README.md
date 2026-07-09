@@ -23,7 +23,6 @@ scripts/eval/        analysis: summary tables and failure-mode breakdowns
 custom_docs/         the public custom dataset: 25 document images + annotations.json
 results/             all result tables and per-sample records
 report/              technical report (md + pdf)
-subset_indices.json  exact benchmark sample indices (reproducibility)
 ```
 
 ## How to run

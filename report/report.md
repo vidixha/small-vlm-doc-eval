@@ -43,7 +43,7 @@ The three VLMs share no encoder or decoder family, so results cannot be attribut
 - **DocVQA (validation split)**: the canonical document VQA benchmark. Real-world forms, invoices, reports, and letters; largely text-extraction-heavy. Chosen for comparability with published results.
 - **InfoVQA (validation split)**: infographic documents requiring joint reasoning over text, layout, and graphical elements. Chosen to complement DocVQA: it isolates layout and visual reasoning beyond plain extraction, so the pair separates "can read text" from "can reason over structure".
 
-**Subsets:** identical fixed-seed (seed 42) 300-sample subsets per benchmark for every model, with the exact indices committed to `subset_indices.json`. At n=300 the 95% confidence interval on accuracy-type metrics is roughly plus or minus 3 to 5 points; the gaps observed (21 to 38 points) far exceed it.
+**Subsets:** identical fixed-seed (seed 42) 300-sample subsets per benchmark for every model; `scripts/setup/make_subsets.py` regenerates the exact same samples deterministically. At n=300 the 95% confidence interval on accuracy-type metrics is roughly plus or minus 3 to 5 points; the gaps observed (21 to 38 points) far exceed it.
 
 ### 3.2 Why a custom dataset was needed
 
