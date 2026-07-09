@@ -1,4 +1,4 @@
-# Sub-1B VLM Document Understanding — Results Summary
+# Sub-1B VLM Document Understanding: Results Summary
 
 300-sample fixed-seed (42) subsets, greedy decoding, vLLM-served on T4.
 

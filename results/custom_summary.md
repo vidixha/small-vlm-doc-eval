@@ -1,10 +1,10 @@
-# Custom Document Set — Prompting Eval
+# Custom Document Set: Prompting Eval
 
 Hand-annotated degraded-scan set (70 QA pairs). `direct` vs `cot`, greedy, vLLM-served, ANLS (DocVQA 0.5 threshold).
 
 ## Overall ANLS
 
-| model        |    cot |   direct |   Δ (cot−direct) |
+| model        |    cot |   direct |   Δ (cot-direct) |
 |:-------------|-------:|---------:|-----------------:|
 | Donut-DocVQA | nan    |    38.84 |           nan    |
 | InternVL3-1B |  34.91 |    57.03 |           -22.12 |
@@ -25,7 +25,7 @@ Hand-annotated degraded-scan set (70 QA pairs). `direct` vs `cot`, greedy, vLLM-
 | Donut-DocVQA | direct |  70 |  38.84 |     47.14 |
 
 
-## acc@0.5 by failure mode — direct
+## acc@0.5 by failure mode: direct
 
 | failure_mode           |   n |   Donut-DocVQA |   InternVL3-1B |   Qwen3.5-0.8B |   SmolVLM-500M |
 |:-----------------------|----:|---------------:|---------------:|---------------:|---------------:|
@@ -48,7 +48,7 @@ Hand-annotated degraded-scan set (70 QA pairs). `direct` vs `cot`, greedy, vLLM-
 | vertical text          |   3 |            0   |          100   |          100   |           66.7 |
 
 
-## acc@0.5 by failure mode — cot
+## acc@0.5 by failure mode: cot
 
 | failure_mode           |   n |   InternVL3-1B |   Qwen3.5-0.8B |   SmolVLM-500M |
 |:-----------------------|----:|---------------:|---------------:|---------------:|
