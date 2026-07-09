@@ -1,29 +1,19 @@
 # Adapting Small VLMs for Document Understanding
-## A Systematic Evaluation of Sub-1B Vision-Language Models on Document Benchmarks and a Custom Degraded-Document Set
+### A Systematic Evaluation of Sub-1B Vision-Language Models on Document Benchmarks and a Custom Dataset
 
-**Author:** Akshata Bhat &nbsp;·&nbsp; **Date:** 2026-07-09 &nbsp;·&nbsp; **Hardware:** Google Colab free tier (Tesla T4, 15GB VRAM, 12GB system RAM)
-
----
-
-## Executive Summary
-
-Four models were evaluated on document understanding under an identical, reproducible protocol: three sub-1B general-purpose vision-language models (**Qwen3.5-0.8B**, **InternVL3-1B**, **SmolVLM-500M-Instruct**) and a task-specific specialist baseline, **Donut** (donut-base-finetuned-docvqa, about 200M parameters). Evaluation covered two public benchmarks (DocVQA, InfoVQA) and a hand-annotated custom set of 25 real documents (70 QA pairs) targeting degradation conditions the public benchmarks do not test. Metrics go beyond accuracy: ANLS, calibration (ECE from token logprobs), and latency.
-
-Three headline findings:
-
-1. **Qwen3.5-0.8B wins the public benchmarks on every axis**: best accuracy (DocVQA 86.9, InfoVQA 54.1 ANLS), best calibration (DocVQA ECE 3.2), fastest inference (0.48 s/query median).
-2. **Public benchmark scores overstate real-world robustness by roughly 25 to 30 ANLS points.** On the custom degraded-document set every model drops sharply (Qwen 86.9 to 54.8; InternVL3 83.2 to 57.0), the ranking between the top two models flips into a tie, and confidence calibration degrades to the point where naive confidence gating would be unsafe.
-3. **Chain-of-thought prompting hurts extractive document QA at this scale.** CoT cost InternVL3-1B 22 ANLS points and Qwen3.5-0.8B 8 points on the custom set relative to direct prompting.
 
 ## 1. Problem Statement
 
-Vision-language models under 1B parameters show strong general visual reasoning, which makes them attractive for on-device and edge deployment where compute and memory are tightly constrained. However, their performance on document understanding (extracting and reasoning over forms, invoices, reports, and infographics) is largely uncharacterized: published evaluations focus on models in the 3B+ range, and generic VQA accuracy does not capture what document pipelines actually need. Three capabilities matter in practice: dense text extraction, layout-aware reasoning, and knowing when an extraction is wrong, because a deployed pipeline must decide when to auto-accept a field value and when to defer to review.
+Vision-language models under 1B parameters show strong general visual reasoning, which makes them effective for on-device and edge deployment where compute and memory are tightly constrained. However, their performance on document understanding (extracting and reasoning over forms, invoices, reports, and infographics) is largely uncharacterized and published evaluations focus on models in the 3B+ range, and generic VQA accuracy does not capture what document pipelines actually fail on. 
 
 This work addresses the gap in three parts:
 
 1. A systematic evaluation of architecturally distinct sub-1B VLMs on document benchmarks, with metrics beyond accuracy (calibration and latency).
 2. A custom, hand-annotated evaluation set probing robustness to real-world document degradation, which public benchmarks do not isolate.
 3. An evidence-based, parameter-efficient improvement strategy targeted at the observed failure pattern.
+
+Four models were evaluated on document understanding under an identical, reproducible protocol: three sub-1B general-purpose vision-language models (**Qwen3.5-0.8B**, **InternVL3-1B**, **SmolVLM-500M-Instruct**) and a task-specific specialist baseline, **Donut** (donut-base-finetuned-docvqa, about 200M parameters). Evaluation covered two public benchmarks (DocVQA, InfoVQA) and a hand-annotated custom set of 25 real documents (70 QA pairs) targeting degradation conditions the public benchmarks do not test. Metrics go beyond accuracy: ANLS, calibration (ECE from token logprobs), and latency.
+
 
 ## 2. Model Choice
 
@@ -34,26 +24,33 @@ This work addresses the gap in three parts:
 | SmolVLM-500M-Instruct | 0.5B | SigLIP | SmolLM2-360M | Purpose-built edge-native design; the "designed for constraint" reference point |
 | Donut (docvqa-ft) | ~0.2B | Swin (OCR-free) | BART | Task-specific specialist baseline, fine-tuned on the DocVQA training split (in-domain there) |
 
-The three VLMs share no encoder or decoder family, so results cannot be attributed to a single shared component. The set gives a clean three-way contrast: newest general-purpose design (Qwen3.5) versus resolution-optimized encoder (InternVL3) versus edge-native design (SmolVLM). Donut adds a fourth axis: does a 2022-era task-specific document architecture still beat modern generalists of similar size on its home task?
+The three VLMs share no encoder or decoder family, so results cannot be attributed to a single shared component.We evaluate the newest general-purpose design (Qwen3.5) versus resolution-optimized encoder (InternVL3) versus edge-native design (SmolVLM). Donut adds a fourth metric: does a 2022-era task-specific document architecture still beat modern generalists of similar size on its home task?
+
+The main findings:
+
+1. **Qwen3.5-0.8B wins the public benchmarks on every metric**: best accuracy (DocVQA 86.9, InfoVQA 54.1 ANLS), best calibration (DocVQA ECE 3.2), fastest inference (0.48 s/query median).
+2. **Public benchmark scores overstate real-world robustness by roughly 25 to 30 ANLS points.** On the custom degraded-document set every model drops sharply (Qwen 86.9 to 54.8; InternVL3 83.2 to 57.0), the ranking between the top two models flips into a tie, and confidence calibration degrades to the point where naive confidence gating would be unsafe.
+3. **Chain-of-thought prompting hurts extractive document QA at this scale.** CoT cost InternVL3-1B 22 ANLS points and Qwen3.5-0.8B 8 points on the custom set relative to direct prompting.
+
 
 ## 3. Data Choice
 
 ### 3.1 Public benchmarks
 
-- **DocVQA (validation split)**: the canonical document VQA benchmark. Real-world forms, invoices, reports, and letters; largely text-extraction-heavy. Chosen for comparability with published results.
-- **InfoVQA (validation split)**: infographic documents requiring joint reasoning over text, layout, and graphical elements. Chosen to complement DocVQA: it isolates layout and visual reasoning beyond plain extraction, so the pair separates "can read text" from "can reason over structure".
+- **DocVQA (validation split)**: A widely used benchmark for document visual question answering, containing real-world forms, invoices, reports, and letters. It was chosen because it provides a diverse set of document types and enables direct comparison with prior work on document understanding models.
+- **InfoVQA (validation split)**: A benchmark based on infographic documents that require reasoning over text, layout, and graphical elements. It complements DocVQA by evaluating a model's ability to interpret document structure and visual information in addition to reading text.
 
 **Subsets:** identical fixed-seed (seed 42) 300-sample subsets per benchmark for every model; `scripts/setup/make_subsets.py` regenerates the exact same samples deterministically. At n=300 the 95% confidence interval on accuracy-type metrics is roughly plus or minus 3 to 5 points; the gaps observed (21 to 38 points) far exceed it.
 
 ### 3.2 Why a custom dataset was needed
 
-Neither DocVQA nor InfoVQA stress-tests the conditions that actually break production document pipelines. Their images are mostly clean, well-digitized documents. Real capture is not: phone photos and office scans arrive skewed, rotated, blurred, faded, and full of handwriting, fine print, and dense tables. A model can score 87 ANLS on DocVQA and still fail on the receipts a user actually photographs. There is also a familiarity concern: both benchmarks are public and widely used, so their images may overlap model pretraining data; a private set cannot be memorized.
+Neither DocVQA nor InfoVQA stress-tests the conditions that actually break production document pipelines. Their images are mostly clean, well-digitized documents. Documents that are captured through phone photos and office scans arrive skewed, rotated, blurred, faded, and full of handwriting, fine print, and dense tables. A model can score 87 ANLS on DocVQA and still fail on the receipts a user actually photographs. There is also a familiarity concern: both benchmarks are public and widely used, so their images may overlap model pretraining data; a private set cannot be memorized.
 
-This gap is something I have documented systematically before. In my earlier work on financial-document OCR (SAVIOR [1]), I showed that OCR pipelines and vision-language models with high scores on standard document benchmarks systematically underperform on document patterns that are operationally critical in real workflows: vertical or rotated text, logo-embedded vendor names, fine-print clauses, degraded scans, and complex multi-column layouts. These patterns are underrepresented in public datasets yet account for a substantial share of real-world failure cases.
+This dataset was created based on a gap I have observed in SOTA Multimodal DocumentAI systems. In my earlier work on financial-document OCR (SAVIOR [1]), I showed that OCR pipelines and vision-language models with high scores on standard document benchmarks systematically underperform on document patterns that are operationally critical in real workflows: vertical or rotated text, logo-embedded vendor names, fine-print clauses, degraded scans, and complex multi-column layouts. These patterns are underrepresented in public datasets yet account for a substantial share of real-world failure cases.
 
 Based on that experience, I built and hand-annotated a custom set of **25 real documents**, yielding **70 question-answer pairs**, and tagged every document with the degradation conditions it exhibits using the failure taxonomy from SAVIOR [1] (17 free-text failure-mode tags in total). The most frequent tags are handwritten text (8 docs), degraded image quality, scanned document, and degraded text quality (5 each), plus dense text, fine print, faded or faint print, vertical text, stylized logos, skewed capture, and an upside-down image; these map directly onto the high-impact patterns identified in the paper. Annotation was done in a purpose-built, self-contained browser annotator, exported as JSON (`custom_docs/annotations.json`), and converted by `scripts/setup/build_custom_tsv.py` into a DocVQA-format TSV so the identical evaluation pipeline and ANLS scoring apply unchanged. The TSV build also emits an index map (`results/custom_index_map.json`, regenerated from the annotations, not committed) linking every scored row back to its document and failure-mode tags, enabling per-condition diagnosis instead of a single aggregate number.
 
-The results justified the effort: the custom set produced a 25 to 32 point ANLS drop and a change in model ranking that are invisible from the public benchmarks alone (Section 7).
+As expected, the custom set produced a 25 to 32 point ANLS drop and a change in model ranking that are invisible from the public benchmarks alone (Section 7).
 
 ## 4. Metrics and Experimental Setup
 
@@ -63,16 +60,13 @@ The results justified the effort: the custom set produced a 25 to 32 point ANLS 
 
 **Serving:** all three VLMs were hosted with vLLM 0.24 (OpenAI-compatible API, fp16, identical flags) and evaluated through VLMEvalKit's API mode; greedy decoding (temperature 0) everywhere. Donut has no vLLM or VLMEvalKit support and used a custom HF driver with the same subsets, a prompt-equivalent task format, greedy decoding, and the same scoring path. Every model received the dataset's standard prompt including the "Answer the question using a single word or phrase." suffix (Donut uses its native task-token format, which is its equivalent). The pipeline was cross-validated: ANLS was computed twice per VLM (VLMEvalKit's evaluator and an independent logprobs-pass path) and agreed within 1 to 4 points on all six legs.
 
-**Prompting comparison (custom set):** each VLM was run in two modes with everything else held fixed. `direct` uses the standard single-word-or-phrase prompt. `cot` instructs the model to reason step by step and finish with `Answer: <short answer>`; the final answer is parsed out for scoring and confidence is measured over the answer span only, not the reasoning. Donut has no chat capability, so it contributes a direct-mode result only.
+**Prompting comparison (custom set):** To evaluate whether explicit reasoning benefits small VLMs, each chat-capable model was evaluated under two prompting strategies while keeping the model, decoding parameters, and inputs fixed. In the direct setting, the model was asked to provide only a short answer. In the CoT setting, the model was instructed to reason step by step before concluding with ```Answer: <short answer>```. For evaluation, only the final extracted answer was scored, and confidence was computed over the answer span rather than the reasoning text. Since Donut is not a chat-based model and does not support reasoning prompts, it was evaluated only in the direct setting.
 
 ## 5. Hardware Requirements
 
-Everything runs on a single Google Colab free-tier instance; no paid compute was used.
 
-- **GPU:** Tesla T4, 15GB VRAM. Serving is fp16 via vLLM at 0.85 GPU memory utilization; the largest model (about 1B parameters) fits comfortably with an 8192-token context. The T4 is a Turing part (SM75), so flash-attention 2 is unsupported and attention runs through SDPA.
-- **System RAM:** 12GB, and this is the binding constraint, not VRAM. vLLM's multimodal processor cache must be disabled (`--mm-processor-cache-gb 0`) and client concurrency capped at 4, otherwise concurrent multi-megabyte infographic payloads get the engine OOM-killed.
-- **Disk:** about 1.4GB of benchmark TSVs plus model weights and two conda environments (several GB more). Datasets and all results live on mounted Drive so nothing is lost when Colab reclaims the session.
-- **Runtime:** the first Qwen3.5 server start pays roughly 12 minutes of Triton kernel autotuning (cached afterwards). Each pipeline stage completes within about an hour, and every stage is resumable after a disconnect.
+- **GPU:** Colab GPU ; Tesla T4, 15GB VRAM. Model serving is fp16 via vLLM at 0.85 GPU memory utilization; the largest model (about 1B parameters) fits comfortably with an 8192-token context.
+- **System RAM:** 12GB, and this is the binding constraint, not VRAM. vLLM's multimodal processor cache must be disabled (`--mm-processor-cache-gb 0`) and client concurrency capped at 4, otherwise concurrent payloads cause Out of Memory issues.
 
 ## 6. Results on Public Benchmarks
 
@@ -85,9 +79,9 @@ Everything runs on a single Google Colab free-tier instance; no paid compute was
 
 \* Donut's ANLS comes from the per-sample scoring path (identical formula); for the VLMs this path matched the main evaluator within 1 to 4 points. Donut is in-domain on DocVQA (fine-tuned on its training split).
 
-**Discussion.**
+**Discussion and analysis**
 
-1. **Qwen3.5-0.8B is the best sub-1B document model on every axis**: accuracy, calibration, and speed. Its DocVQA calibration is essentially honest (ECE 3.2, and slightly underconfident at -1.4), which means confidence-thresholded auto-accept is genuinely viable for clean DocVQA-style inputs.
+1. **Qwen3.5-0.8B is the best sub-1B document model on every metric**: accuracy, calibration, and speed. Its DocVQA calibration is essentially honest (ECE 3.2, and slightly underconfident at -1.4), which means confidence-thresholded auto-accept is genuinely viable for clean DocVQA-style inputs.
 2. **The dominant capability gap is layout and graphical reasoning, not text extraction.** Every model drops 32 to 38 ANLS points from DocVQA to InfoVQA under an identical protocol. Qwen's DocVQA score is near published 3B-class results while its InfoVQA score lags far behind, so the failure is joint reasoning over charts, layouts, and graphics, exactly what InfoVQA isolates.
 3. **The InfoVQA failure mode is wrong-and-confident, the dangerous kind.** Overconfidence grows monotonically as capability falls (+12 for Qwen up to +66 for Donut). SmolVLM answers infographic questions with 78% mean confidence at 38% accuracy. Naive confidence gating is unsafe for infographic-style inputs on all models.
 4. **Edge-native design did not pay off on documents.** SmolVLM-500M trails the generalists by 21 to 31 ANLS at comparable latency and is the worst-calibrated VLM in the set.
