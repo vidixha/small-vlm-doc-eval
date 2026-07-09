@@ -20,7 +20,7 @@ os.environ.setdefault("LMUData", "/content/drive/MyDrive/vlm_eval/LMUData")
 from vlmeval.dataset.utils.vqa_eval import hit_calculate, process_line
 
 BASE = Path("/content/drive/MyDrive/vlm_eval")
-PROMPT_DIR = BASE / "results" / "prompting"
+PROMPT_DIR = BASE / "results"
 INDEX_MAP = BASE / "results" / "custom_index_map.json"
 OUT = BASE / "results"
 MODELS = ["Qwen3.5-0.8B", "InternVL3-1B", "SmolVLM-500M", "Donut-DocVQA"]
@@ -38,7 +38,7 @@ imap = json.loads(INDEX_MAP.read_text()) if INDEX_MAP.exists() else {}
 overall, by_mode_records = [], {}
 for model in MODELS:
     for mode in MODES:
-        jf = PROMPT_DIR / f"{model}_{DS}_{mode}.jsonl"
+        jf = PROMPT_DIR / model / f"{DS}_{mode}.jsonl"
         if not jf.exists():
             continue
         recs = [json.loads(l) for l in open(jf) if l.strip()]

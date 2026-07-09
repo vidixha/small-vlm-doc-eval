@@ -19,7 +19,7 @@ os.environ.setdefault("LMUData", "/content/drive/MyDrive/vlm_eval/LMUData")
 from vlmeval.dataset.utils.vqa_eval import hit_calculate, process_line
 
 WORK = Path("/content/drive/MyDrive/eval_work")
-ECE_DIR = Path("/content/drive/MyDrive/vlm_eval/results/ece")
+ECE_DIR = Path("/content/drive/MyDrive/vlm_eval/results")
 OUT = Path("/content/drive/MyDrive/vlm_eval/results")
 MODELS = ["Qwen3.5-0.8B", "InternVL3-1B", "SmolVLM-500M", "Donut-DocVQA"]
 DATASETS = ["DocVQA_VAL_SUB300", "InfoVQA_VAL_SUB300"]
@@ -54,7 +54,7 @@ for model in MODELS:
         if accs:
             row["anls_main"] = float(pd.read_csv(accs[-1])["Overall"].iloc[0])
         # 2) ECE + latency from the logprobs pass
-        jf = ECE_DIR / f"{model}_{ds}.jsonl"
+        jf = ECE_DIR / model / f"{ds}_ece.jsonl"
         if jf.exists():
             recs = [json.loads(l) for l in open(jf) if l.strip()]
             ok = [r for r in recs if "error" not in r and r.get("conf_geo") is not None]

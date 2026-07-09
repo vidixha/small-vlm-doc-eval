@@ -5,7 +5,7 @@ Sends the same prompts VLMEvalKit uses (dataset.build_prompt) with logprobs=true
 greedy decoding. First --latency-samples queries run sequentially (clean
 single-stream latency); the rest run with --concurrency workers (throughput).
 
-Output: JSONL per (model, dataset) in vlm_eval/results/ece/ with per-sample
+Output: JSONL per (model, dataset) in vlm_eval/results/<model>/ with per-sample
 prediction, token logprobs, confidence aggregates, and wall latency.
 ECE/ANLS aggregation happens in eval/analyze.py.
 
@@ -24,7 +24,7 @@ from pathlib import Path
 os.environ.setdefault("LMUData", "/content/drive/MyDrive/vlm_eval/LMUData")
 import requests
 
-OUT_DIR = Path("/content/drive/MyDrive/vlm_eval/results/ece")
+OUT_DIR = Path("/content/drive/MyDrive/vlm_eval/results")
 
 
 def to_openai_messages(msgs):
@@ -80,13 +80,13 @@ def main():
     # the main eval used: prompts must match exactly)
     from vlmeval.dataset.image_vqa import ImageVQADataset
     url = f"http://127.0.0.1:{args.port}/v1/chat/completions"
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    (OUT_DIR / args.model).mkdir(parents=True, exist_ok=True)
     sess = requests.Session()
 
     for ds_name in args.data:
         dataset = ImageVQADataset(dataset=ds_name)
         assert dataset is not None, f"dataset {ds_name} not found"
-        out_file = OUT_DIR / f"{args.model}_{ds_name}.jsonl"
+        out_file = OUT_DIR / args.model / f"{ds_name}_ece.jsonl"
         done = set()
         if out_file.exists():  # resume after disconnect
             with open(out_file) as f:

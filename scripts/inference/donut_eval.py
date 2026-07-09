@@ -27,7 +27,7 @@ from transformers import DonutProcessor, VisionEncoderDecoderModel
 
 MODEL = "naver-clova-ix/donut-base-finetuned-docvqa"
 NAME = "Donut-DocVQA"
-OUT_DIR = Path("/content/drive/MyDrive/vlm_eval/results/ece")
+OUT_DIR = Path("/content/drive/MyDrive/vlm_eval/results")
 DATASETS = ["DocVQA_VAL_SUB300", "InfoVQA_VAL_SUB300"]
 
 ap = argparse.ArgumentParser()
@@ -41,10 +41,10 @@ processor = DonutProcessor.from_pretrained(MODEL)
 model = VisionEncoderDecoderModel.from_pretrained(MODEL, torch_dtype=torch.float16).cuda().eval()
 tok = processor.tokenizer
 
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+(OUT_DIR / NAME).mkdir(parents=True, exist_ok=True)
 for ds_name in DATASETS:
     dataset = ImageVQADataset(dataset=ds_name)
-    out_file = OUT_DIR / f"{NAME}_{ds_name}.jsonl"
+    out_file = OUT_DIR / NAME / f"{ds_name}_ece.jsonl"
     done = set()
     if out_file.exists():
         done = {json.loads(l)["index"] for l in open(out_file) if l.strip()}

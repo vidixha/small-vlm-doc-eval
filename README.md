@@ -4,7 +4,7 @@
 
 Sub-1B vision-language models are effective for on-device document processing, but their document understanding ability is largely uncharacterized. Published evaluations focus on 3B+ models, and generic VQA accuracy misses what pipelines need (dense text extraction, layout reasoning, and knowing when an extraction is wrong). This project benchmarks small VLMs on document tasks with metrics beyond accuracy (ANLS, calibration, latency) and probes robustness on real degraded documents.
 
-Full methodology and results: [report/report.md](report/report.md)
+Full methodology and results: [report.md](report.md)
 
 ## Datasets
 

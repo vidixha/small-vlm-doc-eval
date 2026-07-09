@@ -13,7 +13,7 @@ prompt.
 
 Assumes the model is already served on --port (see inference/run_prompting.sh).
 Greedy decoding (temperature 0) in both modes. Resumable JSONL per
-(model, dataset, mode) in vlm_eval/results/prompting/.
+(model, dataset, mode) in vlm_eval/results/<model>/.
 
   python inference/prompt_eval.py --model Qwen3.5-0.8B \
       --data DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300 --modes direct cot
@@ -31,7 +31,7 @@ from pathlib import Path
 os.environ.setdefault("LMUData", "/content/drive/MyDrive/vlm_eval/LMUData")
 import requests
 
-OUT_DIR = Path("/content/drive/MyDrive/vlm_eval/results/prompting")
+OUT_DIR = Path("/content/drive/MyDrive/vlm_eval/results")
 
 COT_SUFFIX = (
     "\n\nReason step by step about what the document shows, then end your reply "
@@ -119,7 +119,7 @@ def main():
     # CustomVQADataset, dropping the standard prompt suffix: prompts must match).
     from vlmeval.dataset.image_vqa import ImageVQADataset
     url = f"http://127.0.0.1:{args.port}/v1/chat/completions"
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    (OUT_DIR / args.model).mkdir(parents=True, exist_ok=True)
     sess = requests.Session()
 
     for ds_name in args.data:
@@ -128,7 +128,7 @@ def main():
         lines = [dataset.data.iloc[i] for i in range(len(dataset.data))]
 
         for mode in args.modes:
-            out_file = OUT_DIR / f"{args.model}_{ds_name}_{mode}.jsonl"
+            out_file = OUT_DIR / args.model / f"{ds_name}_{mode}.jsonl"
             done = set()
             if out_file.exists():                   # resume after a disconnect
                 with open(out_file) as f:

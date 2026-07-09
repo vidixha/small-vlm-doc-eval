@@ -145,7 +145,33 @@ Without the custom set, the report would have concluded "use Qwen3.5-0.8B, trust
 
 ## 9. Reproducibility and Engineering Notes
 
-All code, data manifests, and results live in the repository, with scripts grouped by pipeline stage: `scripts/setup/` (environments, model registration, subset and custom-TSV builds), `scripts/inference/` (main eval, prompting, ECE/latency, Donut drivers), and `scripts/eval/` (analysis and summaries). The custom-set pipeline is fully re-runnable: `setup/build_custom_tsv.py`, `inference/run_custom.sh`, `inference/donut_custom.py`, `eval/analyze_custom.py`. Notable engineering findings from the runs: the T4 requires SDPA (flash-attention 2 unsupported on Turing); InternVL3's remote code is incompatible with transformers 5.x (vLLM's native implementation sidesteps it); vLLM's default 4GB multimodal cache plus concurrent infographic payloads OOM-kills the engine on 12GB-RAM Colab (`--mm-processor-cache-gb 0` fixes it); Qwen3.5's linear-attention Triton autotune costs about 12 minutes on first start (cached thereafter); VLMEvalKit's `process_line(anls)` returns distances, not similarities (`hit_calculate` applies the threshold); and shell quoting of vLLM's `--mm-processor-kwargs` JSON must survive bash array expansion (an over-escaped form silently broke the Qwen server launch and was fixed in `inference/run_custom.sh`).
+All code, data manifests, and results live in the repository, with scripts grouped by pipeline stage: `scripts/setup/` (environments, model registration, subset and custom-TSV builds), `scripts/inference/` (main eval, prompting, ECE/latency, Donut drivers), and `scripts/eval/` (analysis and summaries). The custom-set pipeline is fully re-runnable: `setup/build_custom_tsv.py`, `inference/run_custom.sh`, `inference/donut_custom.py`, `eval/analyze_custom.py`.
+
+### Results directory
+
+Cross-model summaries sit at the top level of `results/`; per-sample records sit in one subfolder per model.
+
+```
+results/
+  summary.{csv,md}                   headline metrics per model x benchmark
+                                     (ANLS, acc@0.5, ECE, confidence, latency)
+  gap_analysis.md                    knowledge-gap analysis over the headline numbers
+  custom_summary.{csv,md}            custom-set ANLS and accuracy per model x prompting mode
+  custom_failuremode_breakdown.csv   per-failure-mode accuracy for every model and mode
+  custom_index_map.json              maps each custom-set row to its source document
+                                     and failure-mode tags
+  <model>/                           one folder per model with per-sample JSONL records:
+    DocVQA_VAL_SUB300_ece.jsonl      confidence + latency pass on DocVQA (one line per
+                                     sample: prediction, answer, confidence, latency)
+    InfoVQA_VAL_SUB300_ece.jsonl     same for InfoVQA
+    CustomDocVQA_direct.jsonl        custom-set predictions, direct prompting
+    CustomDocVQA_cot.jsonl           custom-set predictions, chain-of-thought (VLMs only;
+                                     Donut has no chat capability)
+```
+
+### Engineering notes
+
+Notable findings from the runs: the T4 requires SDPA (flash-attention 2 unsupported on Turing); InternVL3's remote code is incompatible with transformers 5.x (vLLM's native implementation sidesteps it); vLLM's default 4GB multimodal cache plus concurrent infographic payloads OOM-kills the engine on 12GB-RAM Colab (`--mm-processor-cache-gb 0` fixes it); Qwen3.5's linear-attention Triton autotune costs about 12 minutes on first start (cached thereafter); VLMEvalKit's `process_line(anls)` returns distances, not similarities (`hit_calculate` applies the threshold); and shell quoting of vLLM's `--mm-processor-kwargs` JSON must survive bash array expansion (an over-escaped form silently broke the Qwen server launch and was fixed in `inference/run_custom.sh`).
 
 ## 10. Recommendation
 

@@ -17,7 +17,7 @@ import pandas as pd
 os.environ.setdefault("LMUData", "/content/drive/MyDrive/vlm_eval/LMUData")
 from vlmeval.dataset.utils.vqa_eval import hit_calculate, process_line
 
-PROMPT_DIR = Path("/content/drive/MyDrive/vlm_eval/results/prompting")
+PROMPT_DIR = Path("/content/drive/MyDrive/vlm_eval/results")
 OUT = Path("/content/drive/MyDrive/vlm_eval/results")
 MODELS = ["Qwen3.5-0.8B", "InternVL3-1B", "SmolVLM-500M"]
 DATASETS = ["DocVQA_VAL_SUB300", "InfoVQA_VAL_SUB300"]
@@ -46,7 +46,7 @@ rows = []
 for model in MODELS:
     for ds in DATASETS:
         for mode in MODES:
-            jf = PROMPT_DIR / f"{model}_{ds}_{mode}.jsonl"
+            jf = PROMPT_DIR / model / f"{ds}_{mode}.jsonl"
             if not jf.exists():
                 continue
             recs = [json.loads(l) for l in open(jf) if l.strip()]
@@ -86,7 +86,7 @@ if not df.empty:
     lines.append("\n## Full metrics (per model × dataset × mode)\n")
     lines.append(df.to_markdown(index=False))
 else:
-    lines.append("_No prompting result JSONLs found in results/prompting/ yet._")
+    lines.append("_No prompting result JSONLs found in results/<model>/ yet._")
 
 (OUT / "prompting_summary.md").write_text("\n".join(lines))
 print(df.to_string(index=False) if not df.empty else "no results yet")
