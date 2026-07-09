@@ -28,9 +28,11 @@ The three VLMs share no encoder or decoder family, so results cannot be attribut
 
 The main findings:
 
-1. **Qwen3.5-0.8B wins the public benchmarks on every metric**: best accuracy (DocVQA 86.9, InfoVQA 54.1 ANLS), best calibration (DocVQA ECE 3.2), fastest inference (0.48 s/query median).
-2. **Public benchmark scores overstate real-world robustness by roughly 25 to 30 ANLS points.** On the custom degraded-document set every model drops sharply (Qwen 86.9 to 54.8; InternVL3 83.2 to 57.0), the ranking between the top two models flips into a tie, and confidence calibration degrades to the point where naive confidence gating would be unsafe.
-3. **Chain-of-thought prompting hurts extractive document QA at this scale.** CoT cost InternVL3-1B 22 ANLS points and Qwen3.5-0.8B 8 points on the custom set relative to direct prompting.
+1. **Qwen3.5-0.8B performed best overall**, achieving the highest accuracy, the most reliable confidence estimates, and the fastest inference across the public benchmarks.
+
+2. **Performance drops significantly on real-world documents.** All models perform much worse on the custom degraded-document dataset than on DocVQA, showing that standard benchmarks do not fully capture real deployment conditions.
+
+3. **Direct prompting is more effective than chain-of-thought prompting.** For the evaluated sub-1B VLMs, CoT generally reduced document question answering performance, making direct prompting the preferred approach.
 
 
 ## 3. Data Choice
