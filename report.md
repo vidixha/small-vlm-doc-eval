@@ -136,7 +136,7 @@ The custom dataset provided insights that are not visible from standard benchmar
 
 The evaluation highlights two main areas where the best-performing model, **Qwen3.5-0.8B**, can be improved. First, its performance drops considerably on infographic-style documents that require reasoning over layouts, charts, and graphics. Second, it is less robust to real-world document degradations such as rotation, skew, fine print, and dense layouts.
 
-To address these limitations, LoRA fine-tuning was applied to Qwen3.5-0.8B: rank-16 adapters on the decoder's attention and MLP projections (q/k/v/o, gate/up/down), vision encoder frozen, 0.74% of parameters trainable. Training data was drawn from the DocVQA and InfoVQA train splits, strictly disjoint from the 300-sample subsets used for evaluation, so no eval row is ever trained on.
+To address these limitations, LoRA fine-tuning was applied to Qwen3.5-0.8B: rank-16 adapters on the decoder's attention and MLP projections (q/k/v/o, gate/up/down), vision encoder frozen, 0.74% of parameters trainable. Training data was drawn from the DocVQA and InfoVQA validation splits, strictly disjoint from the 300-sample subsets used for evaluation, so no eval row is ever trained on.
 
 A first attempt trained on 800 InfoVQA-only rows for 1 epoch and did not move either benchmark. Scaling to a larger, mixed-domain set, 1500 rows drawn from both DocVQA and InfoVQA, for 1 epoch, improved both:
 
