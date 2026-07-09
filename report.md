@@ -40,7 +40,6 @@ The main findings:
 - **DocVQA (validation split)**: A widely used benchmark for document visual question answering, containing real-world forms, invoices, reports, and letters. It was chosen because it provides a diverse set of document types and enables direct comparison with prior work on document understanding models.
 - **InfoVQA (validation split)**: A benchmark based on infographic documents that require reasoning over text, layout, and graphical elements. It complements DocVQA by evaluating a model's ability to interpret document structure and visual information in addition to reading text.
 
-**Subsets:** identical fixed-seed (seed 42) 300-sample subsets per benchmark for every model; `scripts/setup/make_subsets.py` regenerates the exact same samples deterministically. At n=300 the 95% confidence interval on accuracy-type metrics is roughly plus or minus 3 to 5 points; the gaps observed (21 to 38 points) far exceed it.
 
 ### 3.2 Why a custom dataset was needed
 
