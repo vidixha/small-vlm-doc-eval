@@ -188,17 +188,14 @@ These are the complete tables the analysis scripts emit; the body of the report 
 
 ### A.2 Custom set, all metrics
 
-25 documents, 70 QA pairs, ANLS with the standard 0.5 threshold, greedy decoding.
+25 documents, 70 QA pairs (n=70 for every cell), ANLS with the standard 0.5 threshold, greedy decoding. Donut has no chat capability, so it has no cot column.
 
-| Model | Mode | n | ANLS | acc@0.5 |
-|---|---|---|---|---|
-| Qwen3.5-0.8B | direct | 70 | 54.84 | 62.86 |
-| Qwen3.5-0.8B | cot | 70 | 46.69 | 52.86 |
-| InternVL3-1B | direct | 70 | 57.03 | 62.86 |
-| InternVL3-1B | cot | 70 | 34.91 | 40.00 |
-| SmolVLM-500M | direct | 70 | 40.30 | 51.43 |
-| SmolVLM-500M | cot | 70 | 44.45 | 55.71 |
-| Donut-DocVQA | direct | 70 | 38.84 | 47.14 |
+| Model | ANLS<br>direct | ANLS<br>cot | acc@0.5<br>direct | acc@0.5<br>cot |
+|---|---:|---:|---:|---:|
+| Qwen3.5-0.8B | 54.84 | 46.69 | 62.86 | 52.86 |
+| InternVL3-1B | 57.03 | 34.91 | 62.86 | 40.00 |
+| SmolVLM-500M | 40.30 | 44.45 | 51.43 | 55.71 |
+| Donut-DocVQA | 38.84 | - | 47.14 | - |
 
 ### A.3 Custom set, acc@0.5 by failure mode
 
