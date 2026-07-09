@@ -22,7 +22,7 @@ WORK = Path("/content/drive/MyDrive/eval_work")
 ECE_DIR = Path("/content/drive/MyDrive/vlm_eval/results")
 OUT = Path("/content/drive/MyDrive/vlm_eval/results")
 MODELS = ["Qwen3.5-0.8B", "InternVL3-1B", "SmolVLM-500M", "Donut-DocVQA"]
-DATASETS = ["DocVQA_VAL_SUB300", "InfoVQA_VAL_SUB300"]
+DATASETS = ["DocVQA_VAL", "InfoVQA_VAL"]
 
 
 def anls_of(answer, prediction):

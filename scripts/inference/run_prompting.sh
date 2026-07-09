@@ -15,7 +15,7 @@ SCRIPTS=/content/drive/MyDrive/vlm_eval/scripts
 LOG_DIR=/content/drive/MyDrive/vlm_eval/logs
 PORT=8000
 
-DATA="DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300"
+DATA="DocVQA_VAL InfoVQA_VAL"
 
 declare -A REPO=(
   [Qwen3.5-0.8B]="Qwen/Qwen3.5-0.8B"

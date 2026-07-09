@@ -20,7 +20,7 @@ from vlmeval.dataset.utils.vqa_eval import hit_calculate, process_line
 PROMPT_DIR = Path("/content/drive/MyDrive/vlm_eval/results")
 OUT = Path("/content/drive/MyDrive/vlm_eval/results")
 MODELS = ["Qwen3.5-0.8B", "InternVL3-1B", "SmolVLM-500M"]
-DATASETS = ["DocVQA_VAL_SUB300", "InfoVQA_VAL_SUB300"]
+DATASETS = ["DocVQA_VAL", "InfoVQA_VAL"]
 MODES = ["direct", "cot"]
 
 

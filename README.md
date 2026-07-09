@@ -32,21 +32,18 @@ bash scripts/setup/setup_env.sh           # miniconda + vlmeval env + VLMEvalKit
 bash scripts/setup/setup_vllm_env.sh      # separate vllm env (pins its own torch)
 python scripts/setup/register_models.py   # register the 3 models (T4 sdpa fix)
 
-# 2. data
-python scripts/setup/make_subsets.py      # fixed-seed 300-sample DocVQA/InfoVQA subsets
-
-# 3. main evaluation (vLLM-served, greedy)
+# 2. main evaluation (vLLM-served, greedy; DocVQA/InfoVQA TSVs auto-download on first run)
 bash scripts/inference/full_eval_vllm.sh  # headline ANLS, 3 models x 2 benchmarks
 bash scripts/inference/run_ece.sh         # confidence (ECE) + latency pass
 bash scripts/inference/run_prompting.sh   # direct vs chain-of-thought
 python scripts/inference/donut_eval.py    # Donut baseline
 
-# 4. custom document set
+# 3. custom document set
 python scripts/setup/build_custom_tsv.py  # annotations.json -> CustomDocVQA.tsv
 bash scripts/inference/run_custom.sh      # direct + cot on the custom set
 python scripts/inference/donut_custom.py  # Donut on the custom set (direct only)
 
-# 5. analysis -> results/
+# 4. analysis -> results/
 python scripts/eval/analyze.py            # main summary
 python scripts/eval/analyze_prompting.py  # prompting comparison
 python scripts/eval/analyze_custom.py     # custom-set summary + failure-mode breakdown

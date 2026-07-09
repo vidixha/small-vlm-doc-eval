@@ -50,7 +50,7 @@ for NAME in "${MODELS[@]}"; do
 
   conda activate vlmeval
   python "$SCRIPTS/inference/ece_latency.py" --model "$NAME" \
-    --data DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300 \
+    --data DocVQA_VAL InfoVQA_VAL \
     --concurrency 4 --latency-samples 30
   RC=$?
   kill $SERVER_PID 2>/dev/null; wait $SERVER_PID 2>/dev/null

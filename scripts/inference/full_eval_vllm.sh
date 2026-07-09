@@ -15,9 +15,7 @@ export LMUData=/content/drive/MyDrive/vlm_eval/LMUData
 WORK_DIR=/content/drive/MyDrive/eval_work
 LOG_DIR=/content/drive/MyDrive/vlm_eval/logs
 PORT=8000
-DATA="DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300"
-DC='{"DocVQA_VAL_SUB300": {"class": "ImageVQADataset", "dataset": "DocVQA_VAL_SUB300"},
-     "InfoVQA_VAL_SUB300": {"class": "ImageVQADataset", "dataset": "InfoVQA_VAL_SUB300"}}'
+DATA="DocVQA_VAL InfoVQA_VAL"
 
 declare -A REPO=(
   [Qwen3.5-0.8B]="Qwen/Qwen3.5-0.8B"
@@ -67,7 +65,7 @@ serve_and_eval() {
   cd /content/VLMEvalKit
   # shellcheck disable=SC2086
   python run.py --model "$NAME" --data $DATA \
-    --data-config "$DC" --work-dir "$WORK_DIR" --reuse \
+    --work-dir "$WORK_DIR" --reuse \
     --base-url "http://127.0.0.1:$PORT/v1" --key EMPTY \
     --temperature 0 --max-tokens 512 --api-nproc 4 --retry 3  # nproc 8 -> 4: RAM headroom
   local RC=$?

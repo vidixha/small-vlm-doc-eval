@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Evaluate Donut (naver-clova-ix/donut-base-finetuned-docvqa) on the hand-annotated
 CustomDocVQA set, mirroring inference/donut_eval.py but pointed at the custom 25-doc set
-instead of DocVQA_VAL_SUB300/InfoVQA_VAL_SUB300.
+instead of DocVQA_VAL/InfoVQA_VAL.
 
 Donut is a task-specific OCR-free encoder-decoder -- no chat template, no CoT
 capability -- so this only produces a "direct" mode result. Output is written in

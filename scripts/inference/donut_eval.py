@@ -28,7 +28,7 @@ from transformers import DonutProcessor, VisionEncoderDecoderModel
 MODEL = "naver-clova-ix/donut-base-finetuned-docvqa"
 NAME = "Donut-DocVQA"
 OUT_DIR = Path("/content/drive/MyDrive/vlm_eval/results")
-DATASETS = ["DocVQA_VAL_SUB300", "InfoVQA_VAL_SUB300"]
+DATASETS = ["DocVQA_VAL", "InfoVQA_VAL"]
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--limit", type=int, default=0)

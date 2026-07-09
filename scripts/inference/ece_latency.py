@@ -10,7 +10,7 @@ prediction, token logprobs, confidence aggregates, and wall latency.
 ECE/ANLS aggregation happens in eval/analyze.py.
 
 Usage (server already running on --port):
-  python inference/ece_latency.py --model Qwen3.5-0.8B --data DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300
+  python inference/ece_latency.py --model Qwen3.5-0.8B --data DocVQA_VAL InfoVQA_VAL
 """
 import argparse
 import base64

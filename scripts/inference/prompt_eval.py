@@ -16,7 +16,7 @@ Greedy decoding (temperature 0) in both modes. Resumable JSONL per
 (model, dataset, mode) in vlm_eval/results/<model>/.
 
   python inference/prompt_eval.py --model Qwen3.5-0.8B \
-      --data DocVQA_VAL_SUB300 InfoVQA_VAL_SUB300 --modes direct cot
+      --data DocVQA_VAL InfoVQA_VAL --modes direct cot
 """
 import argparse
 import base64
